@@ -46,8 +46,8 @@ const AddCustomer = ({
           initialValues={{ modifier: "public" }}
         >
           <FormAnt.Item
-            label="name"
-            name="name"
+            label="first_name"
+            name="first_name"
             rules={[
               { required: true, message: "Please enter customer name!" },
             ]}
@@ -55,8 +55,8 @@ const AddCustomer = ({
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-            label="owner"
-            name="owner"
+            label="last_name"
+            name="last_name"
             rules={[
               { required: true, message: "Please input owner name!" },
             ]}
@@ -64,11 +64,31 @@ const AddCustomer = ({
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-            label="is_active"
-            name="is_active"
-            rules={[{ required: true, message: "Please input customer status!" }]}
+            label="username"
+            name="username"
+            rules={[
+              { required: true, message: "Please input owner name!" },
+            ]}
           >
-            <Switch defaultChecked={true} />
+            <Input />
+          </FormAnt.Item>
+          <FormAnt.Item
+            label="profession"
+            name="profession"
+            rules={[
+              { required: true, message: "Please input owner name!" },
+            ]}
+          >
+            <Input />
+          </FormAnt.Item>
+          <FormAnt.Item
+            label="company_id"
+            name="company_id"
+            rules={[
+              { required: true, message: "Please input owner name!" },
+            ]}
+          >
+            <Input />
           </FormAnt.Item>
         </FormAnt>
       </Modal>
