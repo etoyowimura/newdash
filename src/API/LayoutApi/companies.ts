@@ -1,20 +1,10 @@
 import instance from "../api";
 import { message } from "antd";
 
-// type numStr = string | number
-// interface Field {
-//     id: numStr,
-//     isActive: boolean,
-//     updatedAt: numStr,
-//     createdAt: numStr,
-//     type: numStr,
-//     name: numStr,
-//     companyId: numStr
-// }
 export const companyController = {
-  async read(id:string) {
+  async read(id:any) {
     const { data }: { data: object } = await instance(
-      `companies/`
+      `companies/?name=${id}`
     );
     const getCount = async () => {
       return 0;
@@ -79,9 +69,9 @@ export const companyController = {
     }
     return { data: res, error };
   },
-  async companyFinderId(company_id: string) {
+  async companyFinderId(name: string) {
     const { data }: { data: Array<any> } = await instance(
-      `company/${company_id}`
+      `companies/?name=${name}`
     );
     return data;
   },

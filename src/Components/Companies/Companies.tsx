@@ -1,12 +1,8 @@
-import { useState } from "react";
-import { useCompanyData } from "../../Hooks/Companies";
+import { useEffect, useState } from "react";
 import AddCompany from "./AddCompanies";
 import { Button } from "antd";
-import SearchOptions from "../../Utils/SearchOptions";
-import {
-  SearchResultForCompany,
-} from "../../Utils/SearchResults";
 import CompanyTable from "./CompaniesTable";
+import instance from "../../API/api";
 
 type Data = {
   data?: {
@@ -17,10 +13,10 @@ type Data = {
   refetch?: any;
   isFetching?: boolean;
 };
+const isSuper = localStorage.getItem("isSuperUser");
 const Company = () => {
   const [skip, setSkip] = useState(0);
-  const [id, setId] = useState<string>("");
-  const { data, isLoading, refetch, isFetching }: Data = useCompanyData(id);
+  const [name, setName] = useState<any>("");
   const [open, setOpen] = useState(false);
   const onChange = (query: any) => {
     setSkip(10 * (parseInt(query.current) - 1));
@@ -28,6 +24,21 @@ const Company = () => {
   const showModal = () => {
     setOpen(true);
   };
+  const [ characters, setCharacters] = useState<any>([])
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const {data}: Data = await instance(`companies/?name=${name}`)
+            setCharacters(data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    fetchData()
+}, [name])
+console.log(characters);
+
   return (
     <div>
       <span
@@ -37,36 +48,29 @@ const Company = () => {
           justifyContent: "space-between",
         }}
       >
-        {open && <AddCompany refetch={refetch} open={open} setOpen={setOpen} />}
-        <SearchOptions
-          SearchResult={(query: string) => SearchResultForCompany(query)}
-          onSelect={(value: any, { valId }: { valId: string }) => {
-            setId(valId === undefined ? "" : valId);
-            if (valId) {
-              setSkip(1);
-            }
-          }}
-          placeholder="Models  Search"
-        />
+        {open && <AddCompany open={open} setOpen={setOpen} />}
+        <div className="search">
+          <input type="text"
+            placeholder={"Search Company"}
+            className={"input"}
+            onChange={event => setName(event.target.value)}
+            value={name}
+          />
+        </div>
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
           size={"large"}
           onClick={showModal}
+          disabled={isSuper === "false"}
         >
           Add Company
-        </Button>
-        <Button size={"large"} style={{ marginLeft: "15px" }} onClick={refetch}>
-          Refresh
         </Button>
       </span>
 
       <CompanyTable
-        data={data?.data}
+        data={characters}
         onChange={onChange}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        refetch={refetch}
       />
     </div>
   );

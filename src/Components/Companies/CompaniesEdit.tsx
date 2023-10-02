@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCompanyOne } from "../../Hooks/Companies";
 import {
@@ -12,25 +12,20 @@ import {
   Input,
   Button,
   Switch,
+  Select,
 } from "antd";
 import { companyController } from "../../API/LayoutApi/companies";
 import { AppleOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
+import { useTeamData } from "../../Hooks/Teams";
 
 const TabPane = Tabs.TabPane;
-
-// type Data = {
-//     data?: {
-//         data: Array<any>,
-//         count: number
-//     }
-// }
 type params = {
   readonly id: any;
 };
 
 type MyObjectType = {
-  [key: string | number]: any; // Индексная подпись с параметром типа 'string'
+  [key: string | number]: any; 
 };
 const CompanyEdit = () => {
   const { id } = useParams<params>();
@@ -42,6 +37,16 @@ const CompanyEdit = () => {
     refetch();
     navigate(-1);
   };
+
+  const [teamId, setTeamId] = useState<any>(data?.name);
+  const TeamData = useTeamData(teamId);
+  const TeamOption: { label: string; value: any }[] | undefined =
+    TeamData?.data?.data?.map(
+      (item: { name: string; id: string }) => ({
+        label: item?.name,
+        value: item?.id
+      })
+    )
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -95,6 +100,19 @@ const CompanyEdit = () => {
                               name="owner"
                             >
                               <Input />
+                            </Form.Item>
+                          </Col>
+                          <Col span={6}>
+                            <Form.Item
+                              wrapperCol={{ span: "100%" }}
+                              label="team_id"
+                              name="team_id"
+                            >
+                              <Select
+                                onChange={(value: any) => setTeamId(value)}
+                                options={TeamOption}
+                                value={teamId}
+                              />
                             </Form.Item>
                           </Col>
                         </Row>

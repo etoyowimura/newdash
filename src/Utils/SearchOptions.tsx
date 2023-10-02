@@ -1,5 +1,5 @@
 import { AutoComplete, Input } from "antd";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 const SearchOptions = ({
     SearchResult,
@@ -26,6 +26,13 @@ const SearchOptions = ({
         };
     };
 
+    useEffect(() => {
+        if (defaultValue) {
+          debounce(handleSearch)(defaultValue);
+        }
+      }, [defaultValue]);
+
+
     const handleSearch = async (value: any) => {
         if (value) {
             let data = await SearchResult(value);
@@ -36,9 +43,6 @@ const SearchOptions = ({
     };
 
     const optimizedFn = useCallback(debounce(handleSearch), []);
-    // const onSelect = (value: any, {valId}: {valId: number | undefined}) => {
-    //     findDailiesByCompany(valId)
-    // };
 
     return (
         <AutoComplete

@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Modal, Space, Spin, Table, Tag } from "antd";
 import { Link } from "react-router-dom";
-import { ExclamationCircleFilled } from "@ant-design/icons";
+import { ExclamationCircleFilled, SyncOutlined  } from "@ant-design/icons";
 import { companyController } from "../../API/LayoutApi/companies";
 import moment from "moment";
+import { useTeamData } from "../../Hooks/Teams";
 
 const { confirm } = Modal;
-
+const isSuper = localStorage.getItem("isSuperUser");
 type numStr = string | number;
 
 interface companySource {
@@ -18,21 +19,23 @@ interface companySource {
   created_at: numStr;
   action: { id: numStr };
   key: React.Key;
+  team: numStr;
 }
 
 const CompanyTable = ({
   data = [],
   onChange,
-  isLoading,
-  isFetching,
-  refetch,
+  // isLoading,
+  // isFetching,
+  // refetch,
 }: {
   data: any | undefined;
   onChange(current: any): void;
-  isLoading: boolean | undefined;
-  isFetching: boolean | undefined;
-  refetch(): void;
+  // isLoading: boolean | undefined;
+  // isFetching: boolean | undefined;
+  // refetch(): void;
 }) => {
+  const [loadings, setLoadings] = useState<boolean[]>([]);
   const columns: object[] = [
     {
       title: "No",
@@ -40,19 +43,19 @@ const CompanyTable = ({
       key: "no",
     },
     {
-      title: "name",
+      title: "Name",
       dataIndex: "name",
       key: "name",
     },
     {
-      title: "owner",
+      title: "Owner",
       dataIndex: "owner",
       key: "owner",
     },
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: "Team",
+      dataIndex: "team",
+      key: "team",
     },
     {
       title: "Is Active",
@@ -76,7 +79,7 @@ const CompanyTable = ({
       },
     },
     {
-      title: "created_at",
+      title: "Created at",
       dataIndex: "created_at",
       key: "created_at",
     },
@@ -100,28 +103,68 @@ const CompanyTable = ({
               return new Promise(async (resolve, reject) => {
                 setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
                 await companyController.deleteCompanyController(id);
-                refetch();
+                // refetch();
               }).catch(() => {
-                refetch();
+                // refetch();
               });
             },
             onCancel() {},
           });
         };
+        const enterLoading = (index: number) => {
+          setLoadings((prevLoadings) => {
+            const newLoadings = [...prevLoadings];
+            newLoadings[index] = true;
+            return newLoadings;
+          });
+          setTimeout(() => {
+            setLoadings((prevLoadings) => {
+              const newLoadings = [...prevLoadings];
+              newLoadings[index] = false;
+              return newLoadings;
+            });
+          }, 6000);
+        };
         return (
           <Space>
             <Link to={`${id}`}>
-              <Button>Edit</Button>
+              <Button disabled={isSuper === "false"}>Edit </Button>
             </Link>
-            <Button  onClick={showConfirm}>Delete</Button>
+            <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
+            {isSuper === 'true' && <Button
+              type="primary"
+              icon={<SyncOutlined />}
+              loading={loadings[Number(id)]}
+              onClick={() => enterLoading(Number(id))}
+            />}
           </Space>
         );
       },
     },
   ];
+  // const [loadings, setLoadings] = useState<boolean[]>([]);
+
+  // const enterLoading = (index: number) => {
+  //   setLoadings((prevLoadings) => {
+  //     const newLoadings = [...prevLoadings];
+  //     newLoadings[index] = true;
+  //     return newLoadings;
+  //   });
+
+  //   setTimeout(() => {
+  //     setLoadings((prevLoadings) => {
+  //       const newLoadings = [...prevLoadings];
+  //       newLoadings[index] = false;
+  //       return newLoadings;
+  //     });
+  //   }, 6000);
+  // };
+
+
+  const TeamData = useTeamData('');
   return (
     <div>
-      <Spin size="large" spinning={isLoading || isFetching}>
+      {/* <Spin size="large" spinning={isLoading || isFetching}> */}
         <Table
           onChange={onChange}
           dataSource={data?.map((u: any, i: number): companySource => {
@@ -137,12 +180,13 @@ const CompanyTable = ({
                 : "",
               action: { id: u.id },
               key: u.id,
+              team: TeamData?.data?.data.map((team: any)=> {if(team.id === u?.team_id){return team.name}}),
             };
             return obj;
           })}
           columns={columns}
         />
-      </Spin>
+      {/* </Spin> */}
     </div>
   );
 };

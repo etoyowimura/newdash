@@ -1,9 +1,9 @@
-import React from "react";
-import { Button, Modal, Space, Spin, Table, Tag } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Modal, Space, Spin, Table } from "antd";
 import { Link } from "react-router-dom";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import { customerController } from "../../API/LayoutApi/customers";
-import moment from "moment";
+import { useCompanyData } from "../../Hooks/Companies";
 
 const { confirm } = Modal;
 
@@ -11,28 +11,21 @@ type numStr = string | number;
 
 interface customerSource {
     no: numStr;
-    first_name: numStr;
-    last_name: numStr;
+    name: numStr;
     company_id: numStr;
     profession: numStr;
-    username: numStr;
     id: numStr;
     action: { id: numStr };
     key: React.Key;
 }
+const isSuper = localStorage.getItem("isSuperUser");
 
 const CustomerTable = ({
     data = [],
     onChange,
-    isLoading,
-    isFetching,
-    refetch,
 }: {
     data: any | undefined;
     onChange(current: any): void;
-    isLoading: boolean | undefined;
-    isFetching: boolean | undefined;
-    refetch(): void;
 }) => {
     const columns: object[] = [
         {
@@ -41,34 +34,19 @@ const CustomerTable = ({
             key: "no",
         },
         {
-            title: "first_name",
-            dataIndex: "first_name",
-            key: "first_name",
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
         },
         {
-            title: "last_name",
-            dataIndex: "last_name",
-            key: "last_name",
-        },
-        {
-            title: "username",
-            dataIndex: "username",
-            key: "username",
-        }, 
-        {
-            title: "profession",
+            title: "Role",
             dataIndex: "profession",
             key: "profession",
-        }, 
-        {
-            title: "company_id",
-            dataIndex: "company_id",
-            key: "company_id",
         },
         {
-            title: "id",
-            dataIndex: "id",
-            key: "id",
+            title: "Company",
+            dataIndex: "company_id",
+            key: "company_id",
         },
         {
             title: "Actions",
@@ -90,10 +68,7 @@ const CustomerTable = ({
                             return new Promise(async (resolve, reject) => {
                                 setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
                                 await customerController.deleteCustomerController(id);
-                                refetch();
-                            }).catch(() => {
-                                refetch();
-                            });
+                            })
                         },
                         onCancel() { },
                     });
@@ -101,37 +76,35 @@ const CustomerTable = ({
                 return (
                     <Space>
                         <Link to={`${id}`}>
-                            <Button>Edit</Button>
+                            <Button disabled={isSuper === "false"}>Edit</Button>
                         </Link>
-                        <Button onClick={showConfirm}>Delete</Button>
+                        <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
                     </Space>
                 );
             },
         },
     ];
+
+
+    const CompanyData = useCompanyData('');
     return (
         <div>
-            <Spin size="large" spinning={isLoading || isFetching}>
-                <Table
-                    onChange={onChange}
-                    dataSource={data?.map((u: any, i: number): customerSource => {
-                        let createCr = u.created_at;
-                        const obj: customerSource = {
-                            no: i + 1,
-                            first_name: u?.first_name,
-                            last_name: u?.last_name,
-                            profession: u?.profession,
-                            username: u?.username,
-                            company_id: u?.company_id,
-                            id: u?.id,
-                            action: { id: u.id },
-                            key: u.id,
-                        };
-                        return obj;
-                    })}
-                    columns={columns}
-                />
-            </Spin>
+            <Table
+                onChange={onChange}
+                dataSource={data?.map((u: any, i: number): customerSource => {
+                    const obj: customerSource = {
+                        no: i + 1,
+                        name: u?.name,
+                        profession: u?.profession,
+                        company_id: CompanyData?.data?.data.map((company: any) => { if (company.id === u?.company_id) { return company.name } }),
+                        id: u?.id,
+                        action: { id: u.id },
+                        key: u.id,
+                    };
+                    return obj;
+                })}
+                columns={columns}
+            />
         </div>
     );
 };

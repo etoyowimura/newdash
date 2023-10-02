@@ -1,16 +1,16 @@
 *{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
   #components-layout-demo-custom-trigger .trigger {
     line-height: 64px;
     cursor: pointer;
     transition: color 0.3s;
   }
   
-  #components-layout-demo-custom-trigger .trigger:hover {
+  #components-layout-demo-custom-trigger 
+  .trigger:hover {
     color: #1890ff;
   }
   
@@ -27,14 +27,60 @@
   .ant-pagination-options-size-changer.ant-select{
     display: none;
   }
-  /* .ant-menu-inline .ant-menu-item{
-    padding: 0 10px;
-  } */
-.logo{
-    font-size: 28px;
-    font-family: Arial, Helvetica, sans-serif; 
-    font-weight: 600;
+  .logo {
+      font-size: 28px;
+      font-family: Arial, Helvetica, sans-serif; 
+      font-weight: 600;
+      text-align: center;
+      padding: 14px 0;
+      color: #ffffff;
+  }   
+
+  .logo-collapsed{
+    font-size: 18px;
+      font-family: Arial, Helvetica, sans-serif; 
+      font-weight: 500;
+      text-align: center;
+      padding: 20px 0;
+      color: #fff;
+  }
+
+  .new-status{
+    background-color: rgb(122, 167, 67);
+    border: 1px solid #bcb5b5;
+    border-radius: 5px;
+    padding: 4px 6px;
+  }
+
+  .checking-status {
+    background-color: rgba(249, 249, 50, 0.479);
+    border: 1px solid #bcb5b5;
+    border-radius: 5px;
+    padding: 4px 6px;
+  }
+  
+  /* Стили для статуса "done" */
+  .done-status {
+    background-color: rgba(147, 202, 167, 0.51);
+    border: 1px solid #bcb5b5;
+    border-radius: 5px;
+    padding: 4px 6px;
+  }
+
+
+.search {
     text-align: center;
-    padding: 10px 0;
-    color: #000;
+    margin-bottom: 10px;
+}
+
+.input {
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #cdcdcd;
+  border-radius: 30px;
+  width: 25 0px;
+}
+
+.new-status-row{
+  background: #9fa08338;
 }

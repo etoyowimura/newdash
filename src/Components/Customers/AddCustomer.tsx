@@ -1,20 +1,29 @@
-import { Input, Modal, Form as FormAnt, Switch } from "antd";
+import { Input, Modal, Form as FormAnt, Select } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
+import { useCompanyData } from "../../Hooks/Companies";
+import { useState } from "react";
 
 const AddCustomer = ({  
   open,
   setOpen,
-  refetch,
 }: {
   open: boolean;
   setOpen(open: boolean): void;
-  refetch(): void;
 }) => {
   const [form] = FormAnt.useForm();
 
   const handleCancel = () => {
     setOpen(!open);
   };
+  const [id, setId] = useState<any>();
+  const CompanyData = useCompanyData(id)
+  const CompanyOption: { label: string; value: any }[] | undefined =
+  CompanyData?.data?.data?.map(
+      (item: { name: string; id: string }) => ({
+        label: item?.name,
+        value: item?.id,
+      })
+    );
 
   return (
     <div>
@@ -30,13 +39,8 @@ const AddCustomer = ({
             .then(async (values) => {
               form.resetFields();
               await customerController.addCustomerController(values);
-              console.log(values);
               setOpen(!open);
-              refetch();
             })
-            .catch((info) => {
-              refetch();
-            });
         }}
       >
         <FormAnt
@@ -46,49 +50,34 @@ const AddCustomer = ({
           initialValues={{ modifier: "public" }}
         >
           <FormAnt.Item
-            label="first_name"
-            name="first_name"
+            label="Name"
+            name="name"
             rules={[
-              { required: true, message: "Please enter customer name!" },
+              { required: true, message: "Please input Name!" },
             ]}
           >
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-            label="last_name"
-            name="last_name"
-            rules={[
-              { required: true, message: "Please input owner name!" },
-            ]}
-          >
-            <Input />
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="username"
-            name="username"
-            rules={[
-              { required: true, message: "Please input owner name!" },
-            ]}
-          >
-            <Input />
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="profession"
+            label="Role"
             name="profession"
             rules={[
-              { required: true, message: "Please input owner name!" },
+              { required: false, message: "Please input Role!" },
             ]}
-          >
-            <Input />
+          > 
+            <Input defaultValue='driver' />
           </FormAnt.Item>
           <FormAnt.Item
-            label="company_id"
+            label="Company"
             name="company_id"
             rules={[
-              { required: true, message: "Please input owner name!" },
+              { required: false, message: "Please input company!" },
             ]}
           >
-            <Input />
+            <Select 
+              onChange={(value: any) => setId(value)}
+              options={CompanyOption}
+            />
           </FormAnt.Item>
         </FormAnt>
       </Modal>

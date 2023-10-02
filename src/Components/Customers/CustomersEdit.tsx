@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomerOne } from "../../Hooks/Customers";
 import {
@@ -12,19 +12,15 @@ import {
   Input,
   Button,
   Switch,
+  Select,
 } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
 import { AppleOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
+import { useCompanyData } from "../../Hooks/Companies";
 
 const TabPane = Tabs.TabPane;
 
-// type Data = {
-//     data?: {
-//         data: Array<any>,
-//         count: number
-//     }
-// }
 type params = {
   readonly id: any;
 };
@@ -36,12 +32,21 @@ const CustomerEdit = () => {
   const { id } = useParams<params>();
   const { data, refetch, status }: MyObjectType = useCustomerOne(id);
   let navigate = useNavigate();
-
+  const [companyId, setCompanyId] = useState<any>(data?.name);
+  const CompanyData = useCompanyData(companyId);
+  const CompnayOption: { label: string; value: any }[] | undefined =
+    CompanyData?.data?.data?.map(
+      (item: { name: string; id: string }) => ({
+        label: item?.name,
+        value: item?.id
+      })
+    )
   const onSubmit = async (value: any) => {
     await customerController.customerPatch(value, id);
     refetch();
     navigate(-1);
   };
+
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -77,12 +82,12 @@ const CustomerEdit = () => {
                         initialValues={{ ...data }}
                         onFinish={onSubmit}
                         autoComplete="off"
-                      >
+                      > 
                         <Row gutter={[16, 10]}>
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="name"
+                              label="Name"
                               name="name"
                             >
                               <Input />
@@ -91,14 +96,27 @@ const CustomerEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="owner"
-                              name="owner"
+                              label="Role"
+                              name="profession"
                             >
                               <Input />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Row gutter={[16, 10]}>
+                          <Col span={6}>
+                            <Form.Item
+                              wrapperCol={{ span: "100%" }}
+                              label="Company"
+                              name='company_id'
+                            >
+                              <Select
+                                onChange={(value: any) => setCompanyId(value)}
+                                options={CompnayOption}
+                                value={companyId}
+                              />
+                            </Form.Item>
+                          </Col>
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}

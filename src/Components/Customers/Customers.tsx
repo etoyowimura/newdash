@@ -1,12 +1,8 @@
-import { useState } from "react";
-import { useCustomerData } from "../../Hooks/Customers";
+import { useEffect, useState } from "react";
 import AddCustomer from "./AddCustomer";
 import { Button } from "antd";
-import SearchOptions from "../../Utils/SearchOptions";
-import {
-  SearchResultForCustomer,
-} from "../../Utils/SearchResults";
 import CustomerTable from "./CustomersTable";
+import instance from "../../API/api";
 
 type Data = {
   data?: {
@@ -17,10 +13,10 @@ type Data = {
   refetch?: any;
   isFetching?: boolean;
 };
+const isSuper = localStorage.getItem("isSuperUser");
 const Customer = () => {
   const [skip, setSkip] = useState(0);
   const [id, setId] = useState<string>("");
-  const { data, isLoading, refetch, isFetching }: Data = useCustomerData(id);
   const [open, setOpen] = useState(false);
   const onChange = (query: any) => {
     setSkip(10 * (parseInt(query.current) - 1));
@@ -28,6 +24,21 @@ const Customer = () => {
   const showModal = () => {
     setOpen(true);
   };
+
+  const [ characters, setCharacters] = useState<any>([])
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const {data}: Data = await instance(`customers/?name=${id}`)
+            setCharacters(data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    fetchData()
+}, [id])
+console.log(characters);
   return (
     <div>
       <span
@@ -37,36 +48,32 @@ const Customer = () => {
           justifyContent: "space-between",
         }}
       >
-        {open && <AddCustomer refetch={refetch} open={open} setOpen={setOpen} />}
-        <SearchOptions
-          SearchResult={(query: string) => SearchResultForCustomer(query)}
-          onSelect={(value: any, { valId }: { valId: string }) => {
-            setId(valId === undefined ? "" : valId);
-            if (valId) {
-              setSkip(1);
-            }
-          }}
-          placeholder="Models  Search"
-        />
+        {open && <AddCustomer open={open} setOpen={setOpen} />}
+        <div className="search">
+          <input type="text"
+            placeholder={"Search Customer"}
+            className={"input"}
+            onChange={event => setId(event.target.value)}
+            value={id}
+          />
+        </div>
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
           size={"large"}
           onClick={showModal}
+          disabled={isSuper === "false"}
         >
           Add Customer
-        </Button>
-        <Button size={"large"} style={{ marginLeft: "15px" }} onClick={refetch}>
-          Refresh
         </Button>
       </span>
 
       <CustomerTable
-        data={data?.data}
+        data={characters}
         onChange={onChange}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        refetch={refetch}
+        // isLoading={isLoading}
+        // isFetching={isFetching}
+        // refetch={refetch}
       />
     </div>
   );

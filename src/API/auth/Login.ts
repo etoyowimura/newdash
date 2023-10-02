@@ -2,20 +2,22 @@ import instance from "../api";
 import {message} from "antd";
 
 interface loginInterface {
-    userName: string;
+    username: string;
     password: string | number;
 }
 
-export const LoginApi = async ({ userName, password }: loginInterface) => {
+export const LoginApi = async ({ username, password }: loginInterface) => {
     try {
-        const { data  } = await instance("admin/signin", {
+        const { data  } = await instance("auth/login/", {
             method: "POST",
-            data: { email: userName, password },
+            data: { username, password },
             headers: { "Content-Type": "application/json" },
         });
         localStorage.setItem("token", data.token);
+        localStorage.setItem("isSuperUser", data.is_superuser);
         localStorage.setItem("user", data.user);
         localStorage.setItem("expires", data.ttl);
+        localStorage.setItem("admin_id", data.id);
         document.location.replace("/");
     } catch (err) {
         setTimeout(() => {

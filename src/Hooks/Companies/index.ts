@@ -1,7 +1,7 @@
 import { useQuery } from "react-query";
 import { companyController } from "../../API/LayoutApi/companies";
 
-export const useCompanyData = (id: string): object => {
+export const useCompanyData = (id: any): any => {
   return useQuery(
     [`companies/${id}`, id],
     () => companyController.read(id),
@@ -13,12 +13,12 @@ export const useCompanyOne = (
   companyId: number | string | undefined
 ): any => {
   return useQuery(
-    [`admin/categoriesOne/${companyId || "all"}`, companyId],
+    [`company/${companyId || "all"}`, companyId],
     () => companyController.companyOne(companyId),
     { refetchOnWindowFocus: false }
   );
 };
 
-export const useFindCompany = async (query: any) => {
+export const useFindCompany = async (query: string) => {
   return await companyController.companyFinderId(query);
 };

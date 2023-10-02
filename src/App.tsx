@@ -2,69 +2,66 @@ import React, { useState } from "react";
 import "./App.css";
 import { Layout, Menu, ConfigProvider, Button } from "antd";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { clear_local_storage } from "./Utils/data";
 import { allMenu, items } from "./Utils/sidebar";
 import Login from "./Auth/Login";
 import Notfound from "./Utils/Notfound";
+import { LogoutApi } from "./API/auth/Logout";
+
 
 const { Header, Sider, Content } = Layout;
 
 const App: React.FC = () => {
-  // const isAuthenticated = localStorage.getItem("token") as string;
-  // const [authorized, setAuthorized] = useState<string | null>(isAuthenticated);
+  const isAuthenticated = localStorage.getItem("token") as string;
+  const [authorized, setAuthorized] = useState<string | null>(isAuthenticated);
   const [collapsed, setCollapsed] = useState<boolean>(false);
   let location: any = useLocation();
-  // const [theme, setTheme] = useState<any>(
-  //   localStorage.getItem("theme") || "dark"
-  // );
-  // const changeTheme = (value: boolean) => {
-  //   setTheme(value ? "dark" : "light");
-  //   localStorage.setItem("theme", value ? "dark" : "light");
-  // };
+  const clickLogout = () => {
+    LogoutApi();
+  }
 
   return (
     <ConfigProvider>
       <div>
-        {/* {!authorized && location.pathname !== "/login" && (
+        {!authorized && location.pathname !== "/login" && (
           <Navigate
             to={{
               pathname: "/login",
             }}
           />
         )}
-        {authorized && location.pathname === "/login" && ( */}
-          {/* <Navigate
+        {authorized && location.pathname === "/login" && (
+          <Navigate
             to={{
               pathname: "/",
             }}
-          /> */}
-        {/* )} */}
-        {/* {authorized ? ( */}
+          />
+        )}
+        {authorized ? (
           <Layout>
             <Sider
-              theme="light"
+              theme={"dark"}
               collapsible
               collapsed={collapsed}
               onCollapse={(value) => setCollapsed(value)}
-              style={{ height: "100vh", overflow: "scroll" }}
+              style={{ height: "100vh", overflow: "scroll", borderRight: '2px solid #000' }}
             >
-              <div className="logo">TT ELD</div> 
+              <div className={collapsed ? 'logo-collapsed':'logo'}>TT ELD</div>
               <Menu
-                theme="light"
+                theme={"dark"}
                 mode="inline"
                 items={allMenu}
                 defaultSelectedKeys={[location.pathname]}
               ></Menu>
             </Sider>
             <Layout className="site-layout">
-              <Header className="site-layout-background" style={{ padding: 0 }}>
+              <Header className="site-layout-background" style={{ padding: 0, background: "#071e35", display: "flex", justifyContent: "end", alignItems: "center" }}>
                 <div style={{ float: "right", marginRight: "35px" }}>
                   <Button
-                    style={{ marginRight: "35px" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "end" }}
                     size="large"
                     type="primary"
                     danger
-                    onClick={clear_local_storage}
+                    onClick={clickLogout}
                   >
                     Logout
                   </Button>
@@ -91,7 +88,7 @@ const App: React.FC = () => {
           </Layout>
         ) : (
           <></>
-        {/* )} */}
+        )}
         <Routes>
           <Route path="/login" element={<Login />} />
         </Routes>

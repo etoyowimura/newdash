@@ -6,22 +6,22 @@ import {LockOutlined, UserOutlined} from '@ant-design/icons';
 
 
 const Login: React.FC = () => {
-    const isValidEmail = (email: any) => {
-        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return re.test(String(email).toLowerCase());
-    }
+    // const isValidEmail = (email: any) => {
+    //     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    //     return re.test(String(email).toLowerCase());
+    // }
 
 
-    const [userName, setUserName] = useState<string>('');
+    const [username, setUserName] = useState<string>('');
     const [password, setPassword] = useState<string | number>('');
     const validate = (val: any) => {
         const err: any = {};
         if (!val.username) {
             err.username = 'Required';
         }
-        if (!isValidEmail(val.username)) {
-            err.username = 'Invalid e-mail address';
-        }
+        // if (!isValidEmail(val.username)) {
+        //     err.username = 'Invalid e-mail address';
+        // }
         if (!val.password) {
             err.password = 'Required';
         }
@@ -30,7 +30,7 @@ const Login: React.FC = () => {
     const sleep = (ms: any) => new Promise(resolve => setTimeout(resolve, ms))
 
     const handleLogin = async () => {
-        await LoginApi({userName, password});
+        await LoginApi({username, password});
     }
 
 
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
         if (values.password !== '') {
             // return { [FORM_ERROR]: 'Login Failed' }
         }
-        await LoginApi({userName: values.username, password: values.password});
+        await LoginApi({username: values.username, password: values.password})
     }
 
     return (

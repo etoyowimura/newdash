@@ -4,7 +4,7 @@ import { message } from "antd";
 export const customerController = {
   async read(id:string) {
     const { data }: { data: object } = await instance(
-      `customers/`
+      `customers/?name=${id}`
     );
     const getCount = async () => {
       return 0;
@@ -14,8 +14,13 @@ export const customerController = {
     return { data, count: count };
   },
 
-  async customerOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`customer/${Id}/`);
+
+  async customerOne(Id: string) {
+    const { data }: { data: any } = await instance(`customer/${Id}`);
+    return data;
+  },
+    async customerByCompany(Id: string) {
+    const { data }: { data: any } = await instance(`customers-by-company/${Id}/`);
     return data;
   },
 
@@ -71,7 +76,7 @@ export const customerController = {
   },
   async customerFinderId(id: string) {
     const { data }: { data: Array<any> } = await instance(
-      `customer/${id}/`
+      `customers/?name=${id}`
     );
     return data;
   },
