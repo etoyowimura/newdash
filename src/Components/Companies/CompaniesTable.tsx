@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Button, Modal, Space, Spin, Table, Tag } from "antd";
-import { Link } from "react-router-dom";
-import { ExclamationCircleFilled, SyncOutlined  } from "@ant-design/icons";
+import { Link, Navigate } from "react-router-dom";
+import { ExclamationCircleFilled, SyncOutlined } from "@ant-design/icons";
 import { companyController } from "../../API/LayoutApi/companies";
 import moment from "moment";
 import { useTeamData } from "../../Hooks/Teams";
 
 const { confirm } = Modal;
-const isSuper = localStorage.getItem("isSuperUser");
+const isSuper = sessionStorage.getItem("isSuperUser");
 type numStr = string | number;
 
 interface companySource {
@@ -16,6 +16,8 @@ interface companySource {
   name: numStr;
   owner: numStr;
   is_active: boolean;
+  usdot: numStr;
+  api_key: numStr;
   created_at: numStr;
   action: { id: numStr };
   key: React.Key;
@@ -43,7 +45,7 @@ const CompanyTable = ({
       key: "no",
     },
     {
-      title: "Name",
+      title: "Company",
       dataIndex: "name",
       key: "name",
     },
@@ -58,25 +60,17 @@ const CompanyTable = ({
       key: "team",
     },
     {
-      title: "Is Active",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (tag: boolean) => (
-        <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
+      title: "USDOT",
+      dataIndex: "usdot",
+      key: "usdot",
+    },
+    {
+      title: "x-api-key",
+      dataIndex: "api_key",
+      key: "api_key",
+      render: (status: string, record: companySource) => (
+        <span className={getStatusClassName(status)}>{status}</span>
       ),
-      filters: [
-        {
-          text: "True",
-          value: true,
-        },
-        {
-          text: "False",
-          value: false,
-        },
-      ],
-      onFilter: (value: any, record: any) => {
-        return record.is_active === value;
-      },
     },
     {
       title: "Created at",
@@ -108,7 +102,7 @@ const CompanyTable = ({
                 // refetch();
               });
             },
-            onCancel() {},
+            onCancel() { },
           });
         };
         const enterLoading = (index: number) => {
@@ -127,10 +121,6 @@ const CompanyTable = ({
         };
         return (
           <Space>
-            <Link to={`${id}`}>
-              <Button disabled={isSuper === "false"}>Edit </Button>
-            </Link>
-            <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
             {isSuper === 'true' && <Button
               type="primary"
               icon={<SyncOutlined />}
@@ -161,31 +151,49 @@ const CompanyTable = ({
   // };
 
 
+  function getStatusClassName(status: string) {
+    if (isSuper === "false") {
+      return "isnot";
+    } else if (isSuper === "true") {
+      return "super";
+    }
+  }
+
   const TeamData = useTeamData('');
   return (
     <div>
       {/* <Spin size="large" spinning={isLoading || isFetching}> */}
-        <Table
-          onChange={onChange}
-          dataSource={data?.map((u: any, i: number): companySource => {
-            let createCr = u.created_at;
-            const obj: companySource = {
-              no: i + 1,
-              name: u?.name,
-              owner: u?.owner,
-              id: u?.id,
-              is_active: u.is_active,
-              created_at: createCr
-                ? moment(createCr).format("YYYY-MM-DD, h:mm:ss a")
-                : "",
-              action: { id: u.id },
-              key: u.id,
-              team: TeamData?.data?.data.map((team: any)=> {if(team.id === u?.team_id){return team.name}}),
-            };
-            return obj;
-          })}
-          columns={columns}
-        />
+      <Table
+        onRow={(record, rowIndex) => {
+          return {
+            onClick: (event) => {
+              console.log(record);
+              isSuper !== "false" && document.location.replace(`/#/companies/${record.id}`);
+            },
+          };
+        }}
+        onChange={onChange}
+        dataSource={data?.map((u: any, i: number): companySource => {
+          let createCr = u.created_at;
+          const obj: companySource = {
+            no: i + 1,
+            name: u?.name,
+            owner: u?.owner,
+            id: u?.id,
+            is_active: u.is_active,
+            api_key: u?.api_key,
+            usdot: u?.usdot,
+            created_at: createCr
+              ? moment(createCr).format("YYYY-MM-DD, h:mm:ss a")
+              : "",
+            action: { id: u.id },
+            key: u.id,
+            team: TeamData?.data?.data.map((team: any) => { if (team.id === u?.team_id) { return team.name } }),
+          };
+          return obj;
+        })}
+        columns={columns}
+      />
       {/* </Spin> */}
     </div>
   );

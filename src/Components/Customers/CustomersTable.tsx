@@ -18,7 +18,7 @@ interface customerSource {
     action: { id: numStr };
     key: React.Key;
 }
-const isSuper = localStorage.getItem("isSuperUser");
+const isSuper = sessionStorage.getItem("isSuperUser");
 
 const CustomerTable = ({
     data = [],
@@ -48,41 +48,41 @@ const CustomerTable = ({
             dataIndex: "company_id",
             key: "company_id",
         },
-        {
-            title: "Actions",
-            dataIndex: "action",
-            key: "action",
-            render: ({
-                id,
-                queryClient,
-            }: {
-                id: string;
-                queryClient: any;
-            }) => {
-                const showConfirm = () => {
-                    confirm({
-                        title: "Customers",
-                        icon: <ExclamationCircleFilled />,
-                        content: "Do you want to delete this Customer ?",
-                        onOk: async () => {
-                            return new Promise(async (resolve, reject) => {
-                                setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-                                await customerController.deleteCustomerController(id);
-                            })
-                        },
-                        onCancel() { },
-                    });
-                };
-                return (
-                    <Space>
-                        <Link to={`${id}`}>
-                            <Button disabled={isSuper === "false"}>Edit</Button>
-                        </Link>
-                        <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
-                    </Space>
-                );
-            },
-        },
+        // {
+        //     title: "Actions",
+        //     dataIndex: "action",
+        //     key: "action",
+        //     render: ({
+        //         id,
+        //         queryClient,
+        //     }: {
+        //         id: string;
+        //         queryClient: any;
+        //     }) => {
+        //         const showConfirm = () => {
+        //             confirm({
+        //                 title: "Customers",
+        //                 icon: <ExclamationCircleFilled />,
+        //                 content: "Do you want to delete this Customer ?",
+        //                 onOk: async () => {
+        //                     return new Promise(async (resolve, reject) => {
+        //                         setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+        //                         await customerController.deleteCustomerController(id);
+        //                     })
+        //                 },
+        //                 onCancel() { },
+        //             });
+        //         };
+        //         return (
+        //             <Space>
+        //                 <Link to={`${id}`}>
+        //                     <Button disabled={isSuper === "false"}>Edit</Button>
+        //                 </Link>
+        //                 <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
+        //             </Space>
+        //         );
+        //     },
+        // },
     ];
 
 
@@ -90,6 +90,14 @@ const CustomerTable = ({
     return (
         <div>
             <Table
+                onRow={(record, rowIndex) => {
+                    return {
+                        onClick: (event) => {
+                            console.log(record);
+                            isSuper !== "false" && document.location.replace(`/#/customers/${record.id}`);
+                        },
+                    };
+                }}
                 onChange={onChange}
                 dataSource={data?.map((u: any, i: number): customerSource => {
                     const obj: customerSource = {

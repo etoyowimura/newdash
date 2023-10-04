@@ -4,6 +4,9 @@ import { clear_local_storage } from "../Utils/data";
 const instance = axios.create({
   baseURL: "http://10.10.10.23:8000/api/v1/",
 });
+// const instance = axios.create({
+//   baseURL: "http://ontime.tteld.co/api/v1/",
+// });
 
 instance.interceptors.response.use(
   (response) => response,

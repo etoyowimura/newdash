@@ -14,7 +14,7 @@ import {
   Switch,
 } from "antd";
 import { serviceController } from "../../API/LayoutApi/services";
-import { AppleOutlined } from "@ant-design/icons";
+import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 
 const TabPane = Tabs.TabPane;
@@ -60,7 +60,7 @@ const ServiceEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <FormOutlined />
                         MAIN FIELDS
                       </span>
                     }

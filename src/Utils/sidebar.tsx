@@ -1,7 +1,6 @@
 import { MenuProps } from "antd";
-import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { BankOutlined, UserOutlined, CustomerServiceOutlined, FileDoneOutlined, TeamOutlined } from '@ant-design/icons';
+import { BankOutlined, UserOutlined, CustomerServiceOutlined, FileDoneOutlined, TeamOutlined, BarChartOutlined, AuditOutlined, MehOutlined, ProfileOutlined } from '@ant-design/icons';
 import Company from "../Components/Companies/Companies";
 import CompanyEdit from '../Components/Companies/CompaniesEdit';
 import Customer from "../Components/Customers/Customers";
@@ -34,19 +33,19 @@ function getItem(
     label,
   } as MenuItem;
 }
-const isSuperUser = localStorage.getItem('isSuperUser');
+const isSuperUser = sessionStorage.getItem('isSuperUser');
 
 export const allMenu: MenuItem[] = [
-  getItem(<Link to="/">Companies</Link>, "/", <BankOutlined />),
-  getItem(<Link to="customers/">Customers</Link>, "customers/", <UserOutlined />),
+  getItem(<Link to="/">Tasks</Link>, "/", <FileDoneOutlined />),  
+  getItem(<Link to="companies/">Companies</Link>, "companies/", <BankOutlined />),
+  getItem(<Link to="customers/">Customers</Link>, "customers/", <AuditOutlined />),
   getItem(<Link to="services/">Services</Link>, "services/", <CustomerServiceOutlined />),
-  getItem(<Link to="tasks/">Tasks</Link>, "tasks/", <FileDoneOutlined />),  
 ];
 
 if (isSuperUser !== 'false') {
   allMenu.push(getItem(<Link to="teams/">Teams</Link>, "teams/", <TeamOutlined />),
-  getItem(<Link to="users/">Admins</Link>, "users/", <TeamOutlined />),
-  getItem(<Link to="stats/">Statistics</Link>, "stats/", <TeamOutlined />))
+  getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />),
+  getItem(<Link to="stats/">Statistics</Link>, "stats/", <BarChartOutlined />))
 }
 
 
@@ -56,14 +55,14 @@ allMenu.push(
 
 export const items: Array<any> = [
   {
-    path: "/",
+    path: "/companies/",
     component: <Company />,
-    key: "/",
+    key: "/companies/",
   },
   {
-    path: "/:id",
+    path: "/companies/:id",
     component: <CompanyEdit />,
-    key: "/:id",
+    key: "/companies/:id",
   },
   {
     path: "/customers/",
@@ -86,14 +85,14 @@ export const items: Array<any> = [
     key: "/services/:id/",
   },
   {
-    path: "/tasks/",
+    path: "/",
     component: <Task />,
-    key: "/tasks/",
+    key: "/",
   },
   {
-    path: "/tasks/:id/",
+    path: "/:id/",
     component: <TaskEdit />,
-    key: "/tasks/:id/",
+    key: "/:id/",
   },
   
   isSuperUser !== 'false' && {

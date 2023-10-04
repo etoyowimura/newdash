@@ -25,13 +25,13 @@ export const useCustomerOne = (Id: string): any => {
   );
 };
 
-export const useCustomerByCompanyData = (Id: string): any => {
-  return useQuery(
-    [`customer/${Id || "all"}`, Id],
-    () => customerController.customerByCompany(Id),
-    { refetchOnWindowFocus: false }
-  );
-};
+// export const useCustomerByCompanyData = (Id: string, name): any => {
+//   return useQuery(
+//     [`customer/${Id || "all"}`, Id],
+//     () => customerController.customerByCompany(Id, name),
+//     { refetchOnWindowFocus: false }
+//   );
+// };
 
 export const useFindCustomer = async (query: any) => {
   return await customerController.customerFinderId(query);

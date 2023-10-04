@@ -19,8 +19,8 @@ export const customerController = {
     const { data }: { data: any } = await instance(`customer/${Id}`);
     return data;
   },
-    async customerByCompany(Id: string) {
-    const { data }: { data: any } = await instance(`customers-by-company/${Id}/`);
+    async customerByCompany(Id: string, name: string) {
+    const { data }: { data: any } = await instance(`customers-by-company/${Id}/?name=${name}`);
     return data;
   },
 

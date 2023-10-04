@@ -20,7 +20,6 @@ interface teamSource {
     action: { id: numStr };
     key: React.Key;
 }
-
 const TeamTable = ({
     data = [],
     onChange,
@@ -71,47 +70,55 @@ const TeamTable = ({
                 return record.is_active === value;
             },
         },
-        {
-            title: "Actions",
-            dataIndex: "action",
-            key: "action",
-            render: ({
-                id,
-                queryClient,
-            }: {
-                id: string;
-                queryClient: any;
-            }) => {
-                const showConfirm = () => {
-                    confirm({
-                        title: "Teams",
-                        icon: <ExclamationCircleFilled />,
-                        content: "Do you want to delete this Team ?",
-                        onOk: async () => {
-                            return new Promise(async (resolve, reject) => {
-                                setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-                                await teamController.deleteTeamController(id);
+        // {
+        //     title: "Actions",
+        //     dataIndex: "action",
+        //     key: "action",
+        //     render: ({
+        //         id,
+        //         queryClient,
+        //     }: {
+        //         id: string;
+        //         queryClient: any;
+        //     }) => {
+        //         const showConfirm = () => {
+        //             confirm({
+        //                 title: "Teams",
+        //                 icon: <ExclamationCircleFilled />,
+        //                 content: "Do you want to delete this Team ?",
+        //                 onOk: async () => {
+        //                     return new Promise(async (resolve, reject) => {
+        //                         setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+        //                         await teamController.deleteTeamController(id);
 
-                            })
-                        },
-                        onCancel() { },
-                    });
-                };
-                return (
-                    <Space>
-                        <Link to={`${id}`}>
-                            <Button>Edit</Button>
-                        </Link>
-                        <Button onClick={showConfirm}>Delete</Button>
-                    </Space>
-                );
-            },
-        },
+        //                     })
+        //                 },
+        //                 onCancel() { },
+        //             });
+        //         };
+        //         return (
+        //             <Space>
+        //                 {/* <Link to={`${id}`}>
+        //                     <Button>Edit</Button>
+        //                 </Link> */}
+        //                 {/* <Button onClick={showConfirm}>Delete</Button> */}
+        //             </Space>
+        //         );
+        //     },
+        // },
     ];
     return (
         <div>
             <Spin size="large" spinning={isLoading || isFetching}>
                 <Table
+                onRow={(record, rowIndex) => {
+                    return {
+                        onClick: (event) => {
+                            console.log(record);
+                            document.location.replace(`/#/teams/${record.id}`);
+                        },
+                    };
+                }}
                     onChange={onChange}
                     dataSource={data?.map((u: any, i: number): teamSource => {
                         let createCr = u.created_at;

@@ -4,19 +4,18 @@ import { useEffect, useState } from "react";
 import { useCompanyData } from "../../Hooks/Companies";
 import { useServiceData } from "../../Hooks/Services";
 import { customerController } from "../../API/LayoutApi/customers";
-import { UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined, SearchOutlined } from '@ant-design/icons';
 import { companyController } from "../../API/LayoutApi/companies";
 import { teamController } from "../../API/LayoutApi/teams";
 import { useTeamData } from "../../Hooks/Teams";
+import instance from "../../API/api";
 const { Option } = Select;
 const AddTask = ({
   open,
   setOpen,
-  refetch,
 }: {
   open: boolean;
   setOpen(open: boolean): void;
-  refetch(): void;
 }) => {
   const [form] = FormAnt.useForm();
 
@@ -24,37 +23,19 @@ const AddTask = ({
     setOpen(!open);
   };
   const [fileIds, setFileIds] = useState([]);
-  const [companyId, setCompanyId] = useState<any>();
-  const [customerId, setCustomerId] = useState<any>(2);
+  const [companyName, setCompanyName] = useState<string>('');
+  const [customerName, setCustomerName] = useState<any>('');
   const [serviceId, setServiceId] = useState<any>();
   const [teamId, setTeamId] = useState<any>(undefined);
-  const [customerData, setCustomerData] = useState<any>()
-  // -------------------------------------------------
-  const CompanyData = useCompanyData('');
-  const TeamData = useTeamData('');
+  const [characters, setCharacters] = useState<any>([])
+  const [customerData, setCustomerData] = useState<any>([])
   const ServiceData = useServiceData('');
-  // -------------------------------------------------
-  const CompanyOption: { label: string; value: any }[] | undefined =
-    CompanyData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id,
-      })
-    );
-  useEffect(() => {
-    if (companyId !== undefined) {
-      customerController.customerByCompany(companyId).then(CustomerData => {
-        setCustomerData(CustomerData);
-      })
-    }
-  }, [companyId, customerId])
-  const CustomerOption: { label: string; value: any }[] | undefined =
-    customerData?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
+  const TeamData = useTeamData('')
+  const [companyId, setCompanyId] = useState<any>();
+  const [options, setOptions] = useState<any>();
+  const [cusOptions, setCusOptions] = useState<any>();
+  const [teamName, setTeamName] = useState<any>()
+
   const ServiceOption: { label: string; value: any }[] | undefined =
     ServiceData?.data?.data?.map(
       (item: { title: string; id: string }) => ({
@@ -62,29 +43,103 @@ const AddTask = ({
         value: item?.id
       })
     )
-  const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
+  // ---------------------------------------------
+
+  type Data = {
+    data?: {
+      data: Array<any>;
+      count: number | string;
+    };
+    isLoading?: boolean;
+    refetch?: any;
+    isFetching?: boolean;
+  };
+
   useEffect(() => {
-    if (companyId) {
-      companyController.companyOne(companyId)
-        .then(data => {
-          setTeamId(data.team_id)
+    const fetchData = async () => {
+      try {
+        const { data }: Data = await instance(`companies/?name=${companyName}`)
+        setCharacters(data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    fetchData()
+  }, [companyName])
+  useEffect(() => {
+    const CompanyOption: { label: string; value: any }[] | undefined =
+      characters?.map(
+        (item: { name: string; id: string }) => ({
+          label: item?.name,
+          value: item?.id,
         })
+      );
+    setOptions(CompanyOption)
+  }, [characters])
+  // const [teamOptions, setTeamOptions] = useState<any>();
+  // useEffect(() => {
+  //   if (companyId) {
+  //     companyController.companyOne(companyId).then(data => {
+  //       const team = data.team_id;
+  //       setTeamId(team)
+  //     })
+  //   }
+  // }, [companyId])
+  // useEffect(() => {
+  //   if(teamId !== undefined){
+  //     teamController.teamOne(teamId).then(data => {
+  //       const options = {
+  //         label: data.name,
+  //         value: data.id
+  //       }
+  //       const opt = [options]
+  //       setTeamOptions(opt)
+  //     })
+  //   }
+  // }, [teamId])
+
+  useEffect(() => {
+    if (companyId !== undefined) {
+      customerController.customerByCompany(companyId, customerName).then(data => {
+        setCustomerData(data)
+      })
     }
   }, [companyId])
-  const [teamName, setTeamName] = useState<any>()
+
   useEffect(() => {
-    if (teamId) {
-      teamController.teamOne(teamId).then(data => {
-        setTeamName(data.name)
-      })
+    if (companyId !== undefined) {
+      const fetchData = async () => {
+        try {
+          const { data }: Data = await instance(`customers-by-company/${companyId}/?name=${customerName}`)
+          setCustomerData(data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      fetchData()
     }
-  }, [teamId])
+  }, [customerName])
+
+  useEffect(() => {
+    const CustomerOption: { label: string; value: any }[] | undefined =
+      customerData?.map(
+        (item: { name: string; id: string }) => ({
+          label: item?.name,
+          value: item?.id
+        })
+      )
+    setCusOptions(CustomerOption)
+  }, [customerData])
+
+
+  const teamOptions: { label: string; value: any }[] | undefined =
+      TeamData?.data?.data.map(
+        (item: { name: string; id: string }) => ({
+          label: item?.name,
+          value: item?.id
+        })
+      )
+
   return (
     <div>
       <Modal
@@ -102,11 +157,7 @@ const AddTask = ({
               form.resetFields();
               await taskController.addTaskController(updatedValues);
               setOpen(!open);
-              refetch();
             })
-            .catch((info) => {
-              refetch();
-            });
         }}
       >
         <FormAnt
@@ -123,8 +174,15 @@ const AddTask = ({
             ]}
           >
             <Select
+              showSearch
+              placeholder="Search Company"
+              onSearch={(value: any) => setCompanyName(value)}
+              options={options}
+              value={companyName}
+              filterOption={false}
+              autoClearSearchValue={false}
+              allowClear
               onChange={(value: any) => setCompanyId(value)}
-              options={CompanyOption}
             />
           </FormAnt.Item>
           <FormAnt.Item
@@ -135,8 +193,14 @@ const AddTask = ({
             ]}
           >
             <Select
-              onChange={(value: any) => setCustomerId(value)}
-              options={CustomerOption}
+              showSearch
+              placeholder="Search Customer"
+              onSearch={(value: any) => setCustomerName(value)}
+              options={cusOptions}
+              value={customerName}
+              filterOption={false}
+              autoClearSearchValue={false}
+              allowClear
             />
           </FormAnt.Item>
           <FormAnt.Item
@@ -151,6 +215,15 @@ const AddTask = ({
               options={ServiceOption}
             />
           </FormAnt.Item>
+          {/* <FormAnt.Item
+            label="Assigned to"
+            name="assigned_to_id"
+            rules={[
+              { required: true, message: "Please select one of the teams!" },
+            ]}
+          >
+            <Select options={teamOptions}/>
+          </FormAnt.Item> */}
           <FormAnt.Item
             label="Assigned to"
             name="assigned_to_id"
@@ -158,11 +231,7 @@ const AddTask = ({
               { required: true, message: "Please select one of the teams!" },
             ]}
           >
-            <Select
-              defaultValue={teamName}
-              onChange={(value: any) => setTeamId(value)}
-              options={TeamOption}
-            />
+            <Select options={teamOptions}/>
           </FormAnt.Item>
           <FormAnt.Item
             label="Note"

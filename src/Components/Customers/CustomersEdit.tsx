@@ -15,7 +15,7 @@ import {
   Select,
 } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
-import { AppleOutlined } from "@ant-design/icons";
+import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useCompanyData } from "../../Hooks/Companies";
 
@@ -64,7 +64,7 @@ const CustomerEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <FormOutlined />
                         MAIN FIELDS
                       </span>
                     }

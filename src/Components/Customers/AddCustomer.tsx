@@ -1,7 +1,8 @@
 import { Input, Modal, Form as FormAnt, Select } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
 import { useCompanyData } from "../../Hooks/Companies";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import instance from "../../API/api";
 
 const AddCustomer = ({  
   open,
@@ -15,16 +16,40 @@ const AddCustomer = ({
   const handleCancel = () => {
     setOpen(!open);
   };
-  const [id, setId] = useState<any>();
-  const CompanyData = useCompanyData(id)
-  const CompanyOption: { label: string; value: any }[] | undefined =
-  CompanyData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id,
-      })
-    );
-
+  type Data = {
+    data?: {
+      data: Array<any>;
+      count: number | string;
+    };
+    isLoading?: boolean;
+    refetch?: any;
+    isFetching?: boolean;
+  };
+  const [companyName, setCompanyName] = useState<string>('');
+  const [options, setOptions] = useState<any>();
+  const [companyId, setCompanyId] = useState<any>();
+  const [characters, setCharacters] = useState<any>([])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data }: Data = await instance(`companies/?name=${companyName}`)
+        setCharacters(data)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    fetchData()
+  }, [companyName])
+  useEffect(() => {
+    const CompanyOption: { label: string; value: any }[] | undefined =
+      characters?.map(
+        (item: { name: string; id: string }) => ({
+          label: item?.name,
+          value: item?.id,
+        })
+      );
+    setOptions(CompanyOption)
+  }, [characters])
   return (
     <div>
       <Modal
@@ -74,9 +99,16 @@ const AddCustomer = ({
               { required: false, message: "Please input company!" },
             ]}
           >
-            <Select 
-              onChange={(value: any) => setId(value)}
-              options={CompanyOption}
+            <Select
+              showSearch
+              placeholder="Search Company"
+              onSearch={(value: any) => setCompanyName(value)}
+              options={options}
+              value={companyName}
+              filterOption={false}
+              autoClearSearchValue={false}
+              allowClear
+              onChange={(value: any) => setCompanyId(value)}
             />
           </FormAnt.Item>
         </FormAnt>

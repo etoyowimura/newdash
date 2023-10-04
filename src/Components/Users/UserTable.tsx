@@ -84,44 +84,43 @@ const UserTable = ({
                 return record.is_active === value;
             },
         },
-        {
-            title: "Actions",
-            dataIndex: "action",
-            key: "action",
-            render: ({
-                id,
-                queryClient,
-            }: {
-                id: string;
-                queryClient: any;
-            }) => {
-                const showConfirm = () => {
-                    confirm({
-                        title: "Users",
-                        icon: <ExclamationCircleFilled />,
-                        content: "Do you want to delete this User ?",
-                        onOk: async () => {
-                            return new Promise(async (resolve, reject) => {
-                                setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-                                await userController.deleteUserController(id);
-                                // refetch();
-                            }).catch(() => {
-                                // refetch();
-                            });
-                        },
-                        onCancel() { },
-                    });
-                };
-                return (
-                    <Space>
-                        <Link to={`${id}`}>
-                            <Button>Edit</Button>
-                        </Link>
-                        <Button onClick={showConfirm}>Delete</Button>
-                    </Space>
-                );
-            },
-        },
+        // {
+        //     title: "Actions",
+        //     dataIndex: "action",
+        //     key: "action",
+        //     render: ({
+        //         id,
+        //         queryClient,
+        //     }: {
+        //         id: string;
+        //         queryClient: any;
+        //     }) => {
+        //         const showConfirm = () => {
+        //             confirm({
+        //                 title: "Users",
+        //                 icon: <ExclamationCircleFilled />,
+        //                 content: "Do you want to delete this User ?",
+        //                 onOk: async () => {
+        //                     return new Promise(async (resolve, reject) => {
+        //                         setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+        //                         await userController.deleteUserController(id);
+        //                         // refetch();
+        //                     }).catch(() => {
+        //                         // refetch();
+        //                     });
+        //                 },
+        //                 onCancel() { },
+        //             });
+        //         };
+        //         return (
+        //             <Space>
+        //                 {/* <Link to={`${id}`}>
+        //                     <Button>Edit</Button>
+        //                 </Link> */}
+        //             </Space>
+        //         );
+        //     },
+        // },
     ];
     const TeamData = useTeamData('');
     
@@ -129,6 +128,14 @@ const UserTable = ({
         <div>
             <Spin size="large" spinning={isLoading || isFetching}>
                 <Table
+                onRow={(record, rowIndex) => {
+                    return {
+                        onClick: (event) => {
+                            console.log(record);
+                            document.location.replace(`/#/users/${record.id}`);
+                        },
+                    };
+                }}
                     onChange={onChange}
                     dataSource={data?.map((u: any, i: number): userSource => {
                         const obj: userSource = {

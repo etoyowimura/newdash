@@ -67,20 +67,14 @@
     padding: 4px 6px;
   }
 
-
-.search {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.input {
-  padding: 10px;
-  font-size: 15px;
-  border: 1px solid #cdcdcd;
-  border-radius: 30px;
-  width: 25 0px;
-}
-
 .new-status-row{
-  background: #9fa08338;
+  background: #afafaf38;
+}
+
+.isnot{
+  display: none;
+}
+
+.ant-table-row{
+  cursor: pointer;
 }

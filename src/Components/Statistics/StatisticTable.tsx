@@ -11,6 +11,7 @@ interface statSource {
     admin: numStr;
     points: numStr;
     team: numStr;
+    fullName: numStr;
     id: numStr;
     key: React.Key;
 }
@@ -38,6 +39,11 @@ const StatTable = ({
             title: "admin",
             dataIndex: "admin",
             key: "admin",
+        },
+        {
+            title: "Full name",
+            dataIndex: "fullName",
+            key: "fullName",
         },
         {
             title: "team",
@@ -99,8 +105,9 @@ const StatTable = ({
                         const obj: statSource = {
                             no: i + 1,
                             team: TeamData?.data?.data.map((team: any)=> {if(team.id === u?.team_id){return team.name}}),
-                            admin: u?.admin,
+                            admin: u?.username,
                             points: u?.total_points,
+                            fullName: u?.full_name,
                             id: u?.id,
                             key: u.id,
                         };

@@ -9,10 +9,9 @@ export const LogoutApi = async () => {
             headers: { "Content-Type": "application/json" },
         });
         localStorage.removeItem("token");
-        localStorage.setItem("isSuperUser", 'empty');
+        sessionStorage.setItem("isSuperUser", 'empty');
         localStorage.removeItem("user");
-        localStorage.removeItem("expires");
-        localStorage.removeItem("fmcsa_count");
+        // localStorage.removeItem("fmcsa_count");
         localStorage.removeItem("admin_id");
         document.location.replace("/");
     } catch (err) {

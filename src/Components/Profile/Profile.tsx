@@ -20,9 +20,9 @@ const Profile = () => {
 
 
     const [point, setpoint] = useState<string>('');
-    const [first, setFirst] = useState<string>('');
-    const [last, setLast] = useState<string>('');
-    const [username, setUsername] = useState<string>('');
+    const [first, setFirst] = useState<string>('alskdjfhg1029384756?&%$');
+    const [last, setLast] = useState<string>('alskdjfhg1029384756?&%$');
+    const [username, setUsername] = useState<string>('alskdjfhg1029384756?&%$');
     const [team, setTeam] = useState<string>('');
     const [staff, setStaff] = useState<boolean | null>(null);
 
@@ -73,7 +73,7 @@ const Profile = () => {
                                             onFinish={onSubmit}
                                         >
                                             <Row gutter={[16, 10]}>
-                                                {first !== '' && <Col span={6}>
+                                                {first !== 'alskdjfhg1029384756?&%$' && <Col span={6}>
                                                     <Form.Item
                                                         wrapperCol={{ span: "100%" }}
                                                         label="First name"
@@ -82,7 +82,7 @@ const Profile = () => {
                                                         <Input defaultValue={first} />
                                                     </Form.Item>
                                                 </Col>}
-                                                {last !== '' && <Col span={6}>
+                                                {last !== 'alskdjfhg1029384756?&%$' && <Col span={6}>
                                                     <Form.Item
                                                         wrapperCol={{ span: "100%" }}
                                                         label="Last name"
@@ -91,7 +91,7 @@ const Profile = () => {
                                                         <Input defaultValue={last} />
                                                     </Form.Item>
                                                 </Col>}
-                                                {username !== '' && <Col span={6}>
+                                                {username !== 'alskdjfhg1029384756?&%$' && <Col span={6}>
                                                     <Form.Item
                                                         wrapperCol={{ span: "100%" }}
                                                         label="Username"
@@ -124,7 +124,7 @@ const Profile = () => {
                                                         <Input defaultValue={team} readOnly />
                                                     </Form.Item>
                                                 </Col>}
-                                                {staff !== null && <Col span={6}>
+                                                {/* {staff !== null && <Col span={6}>
                                                     <Form.Item
                                                         wrapperCol={{ span: "100%" }}
                                                         label="Is Staff"
@@ -132,7 +132,7 @@ const Profile = () => {
                                                     >
                                                         <Switch defaultChecked={staff} />
                                                     </Form.Item>
-                                                </Col>}
+                                                </Col>} */}
                                             </Row>
                                         </Form>
                                         <Form

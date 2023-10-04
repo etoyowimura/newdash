@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import AddTask from "./AddTask";
-import { Button } from "antd";
+import { Button, Input, Select, Upload } from 'antd';
 import TaskTable from "./TaskTable";
 import instance from "../../API/api";
+import { SearchOutlined } from "@ant-design/icons";
+import moment from "moment";
+import Search from "antd/es/input/Search";
+
 type Data = {
   data?: {
     data: Array<any>;
@@ -12,41 +16,115 @@ type Data = {
   refetch?: any;
   isFetching?: boolean;
 };
-const isSuper = localStorage.getItem("isSuperUser");
+const { Option } = Select;
+const isSuper = sessionStorage.getItem("isSuperUser");
 const Task = () => {
-  const [skip, setSkip] = useState(0);
-  const [id, setId] = useState<string>("");
   const [open, setOpen] = useState(false);
+  const [skip, setSkip] = useState<any>(1);
   const onChange = (query: any) => {
-    setSkip(10 * (parseInt(query.current) - 1));
+    if (query.loadings !== 1) {
+      const a = query.loadings;
+      setSkip(a);
+    }
+    if (query.prev !== undefined) {
+      const a = query.prev;
+      setCharacters(a);
+    }
   };
+
+  const [characters, setCharacters] = useState<any>([]);
+  const [id, setId] = useState<string>('');
+  const [status, setStatus] = useState<string>('all');
+
+  const fetchData = async (apiEndpoint: string) => {
+    try {
+      const { data }: Data = await instance(apiEndpoint);
+      console.log(data);
+      
+      setCharacters(data?.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (id !== "") {
+      fetchData(`tasks/?customer=${id}`);
+      const fetchNewData = async () => {
+        try {
+          const { data }: any = await instance(`tasks/?customer=${id}`);
+          setCharacters(data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchNewData()
+    }
+    if (id === "") {
+      fetchData(`tasks/?page=1`);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (status !== 'all') {
+      const fetchNewData = async () => {
+        try {
+          const { data }: any = await instance(`tasks/?status=${status}`);
+          setCharacters(data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchNewData()
+    } else {
+      fetchData(`tasks/?page=1`);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if(status === 'all' && id === ''){const intervalId = setInterval(() => {
+      const now = moment();
+      const formattedTimeMinusFiveSeconds = now.subtract(5, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
+      const fetchNewData = async () => {
+        try {
+          const { data }: any = await instance(`tasks/new/?time=${formattedTimeMinusFiveSeconds}`);
+          // setCharacters((prevCharacters: Array<any>) => {
+          //   const updatedCharacters = prevCharacters.map((prevChar) => {
+          //     const matchingDataItem = data?.data.find((dataItem) => dataItem.id === prevChar.id);
+          //     if (matchingDataItem) {
+          //       return matchingDataItem;
+          //     }
+          //     return prevChar;
+          //   });
+          //   data?.data.forEach((dataItem) => {
+          //     if (!updatedCharacters.some((prevChar) => prevChar.id === dataItem.id)) {
+          //       updatedCharacters.unshift(dataItem);
+          //     }
+          //   });
+          //     const trimmedCharacters = updatedCharacters.slice(0, 20);
+          //     return trimmedCharacters;
+          // });
+
+          setCharacters((prev: any) => [...data?.data, ...prev.slice(0, prev.length - data?.data.length)]);
+        } catch (error) {
+          console.error(error);
+        }
+        
+      };
+      fetchNewData();
+    }, 5000);
+    return () => {
+      clearInterval(intervalId);
+    };}
+  }, [status, id]);
+
   const showModal = () => {
     setOpen(true);
   };
-
-  const [characters, setCharacters] = useState<any>([])
-  const [isLoading, setIsLoading] = useState<any>([]);
-  const [refetch, setRefetch] = useState<any>([]);
-  const [isFetching, setIsFetching] = useState<any>([]);
+  const [length, setLength] = useState<any>();
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, isLoading, refetch, isFetching }: Data = await instance(`tasks/?customer=${id}`)
-        setCharacters(data)
-        setIsLoading(isLoading)
-        setRefetch(refetch)
-        setIsFetching(isFetching)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    fetchData()
-    const intervalId = setInterval(() => {
-      fetchData();
-    }, 5000);
-    return () => clearInterval(intervalId);
-  }, [id])
-  console.log(characters);
+    setLength(characters)
+  }, [characters])
 
   return (
     <div>
@@ -57,7 +135,7 @@ const Task = () => {
           justifyContent: "space-between",
         }}
       >
-        {open && <AddTask refetch={refetch} open={open} setOpen={setOpen} />}
+        {open && <AddTask open={open} setOpen={setOpen} />}
         {/* <SearchOptions
           SearchResult={(query: string) => SearchResultForTaskCustomer(query)}
           onSelect={(value: any, { valId }: { valId: string }) => {
@@ -69,12 +147,27 @@ const Task = () => {
           placeholder="Company"
         /> */}
         <div className="search">
-          <input type="text"
-            placeholder={"Search by customer"}
-            className={"input"}
+          <Search
+            type="text"
+            placeholder="Search by Customer"
             onChange={event => setId(event.target.value)}
             value={id}
+            allowClear
           />
+        </div>
+        <div className="status">
+          <Select
+            style={{ width: 120, marginLeft: 15 }}
+            placeholder='status'
+            onChange={(value: any) => setStatus(value)}
+          >
+            <Option value="all">all</Option>
+            <Option value="New">New</Option>
+            <Option value="Checking">Checking</Option>
+            <Option value="Done">Done</Option>
+            <Option value="Do PTI">Do PTI</Option>
+            <Option value="No need PTI">No need PTI</Option>
+          </Select>
         </div>
         <Button
           type="primary"
@@ -88,11 +181,8 @@ const Task = () => {
       </span>
 
       <TaskTable
-        data={characters}
+        data={{ data: characters }}
         onChange={onChange}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        refetch={refetch}
       />
     </div>
   );

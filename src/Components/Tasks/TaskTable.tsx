@@ -1,6 +1,6 @@
 import { Button, Modal, Space, Spin, Table, Tag } from "antd";
 import { Link } from "react-router-dom";
-import { ExclamationCircleFilled } from "@ant-design/icons";
+import { ExclamationCircleFilled, CloudDownloadOutlined } from "@ant-design/icons";
 import { taskController } from "../../API/LayoutApi/tasks";
 import { useCompanyData } from "../../Hooks/Companies";
 import { useCustomerData } from "../../Hooks/Customers";
@@ -9,6 +9,7 @@ import { useUserData } from "../../Hooks/Users";
 import { useTeamData } from "../../Hooks/Teams";
 import '../../App.css'
 import { useEffect, useState } from "react";
+import instance from "../../API/api";
 const { confirm } = Modal;
 
 type numStr = string | number;
@@ -23,24 +24,23 @@ interface taskSource {
     id: numStr;
     note: numStr;
     status: numStr;
-    extra_task: boolean;
     action: { id: numStr, inCharge: numStr };
     key: React.Key;
 }
 const admin_id = localStorage.getItem("admin_id");
-const isSuper = localStorage.getItem("isSuperUser");
+const isSuper = sessionStorage.getItem("isSuperUser");
 const TaskTable = ({
     data = [],
     onChange,
-    isLoading,
-    isFetching,
-    refetch,
+    // isLoading,
+    // isFetching,
+    // refetch,
 }: {
     data: any | undefined;
     onChange(current: any): void;
-    isLoading: boolean | undefined;
-    isFetching: boolean | undefined;
-    refetch(): void;
+    // isLoading: boolean | undefined;
+    // isFetching: boolean | undefined;
+    // refetch(): void;
 }) => {
     const columns: object[] = [
         {
@@ -64,6 +64,14 @@ const TaskTable = ({
             key: "service_id",
         },
         {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+            render: (status: string) => (
+                <span className={getStatusClassName(status)}>{status}</span>
+            ),
+        },
+        {
             title: "In charge",
             dataIndex: "in_charge_id",
             key: "in_charge_id",
@@ -73,35 +81,6 @@ const TaskTable = ({
             dataIndex: "note",
             key: "note",
         },
-        {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (status: string) => (
-                <span className={getStatusClassName(status)}>{status}</span>
-              ),
-        },
-        {
-            title: "Extra Task",
-            dataIndex: "extra_task",
-            key: "extra_task",
-            render: (tag: boolean) => (
-              <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
-            ),
-            filters: [
-              {
-                text: "True",
-                value: true,
-              },
-              {
-                text: "False",
-                value: false,
-              },
-            ],
-            onFilter: (value: any, record: any) => {
-              return record.is_active === value;
-            },
-          },
         {
             title: "Actions",
             dataIndex: "action",
@@ -133,22 +112,26 @@ const TaskTable = ({
                 return (
                     <Space>
                         <Link to={`${id}`}>
-                            {isSuper === 'true' || inCharge == null ? (<Button>Edit</Button>) : 
-                            (<Button disabled={inCharge != admin_id}>Edit</Button>)}
+                            {isSuper === 'true' || inCharge == null ? (<Button>Edit</Button>) :
+                                (<Button disabled={inCharge != admin_id}>Edit</Button>)}
                         </Link>
-                        <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
                     </Space>
                 );
             },
         },
     ];
 
+    const [mainData, setMainData] = useState<any>()
+    useEffect(() => {
+        const Data = data.data;
+        setMainData(Data)
+    }, [data])
     const rowClassName = (record: taskSource) => {
         if (record.status === 'New') {
-          return 'new-status-row'; // Здесь 'new-status-row' - класс для новых задач
+            return 'new-status-row';
         }
-        return ''; // Возвращаем пустую строку, если нет специального класса
-      };
+        return '';
+    };
 
     function getStatusClassName(status: string) {
         if (status === "Checking") {
@@ -169,32 +152,104 @@ const TaskTable = ({
     const AdminData = useUserData('');
     const TeamData = useTeamData('');
 
+    const [loadings, setLoadings] = useState<any>(1);
+
+    const LoadMore = () => {
+        const a = loadings + 1;
+        setLoadings(a);
+    };
+    type Data = {
+        data?: {
+            data: Array<any>;
+            count: number | string;
+        };
+    };
+
+    const [results, setResults] = useState<any>();
+    useEffect(() => {
+        if (loadings !== 1) {
+            const fetchData = async () => {
+                try {
+                    const { data }: Data = await instance(`tasks/?page=${loadings}`)
+                    const result = data?.data;
+                    setResults(result);
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+            fetchData()
+        }
+    }, [loadings])
+    // console.log(mainData, results);
+
+    useEffect(() => {
+        if (results !== undefined) {
+            const prev = [...mainData, ...results];
+            console.log(prev);
+            setMainData(prev);
+            onChange({ loadings, prev })
+        }
+    }, [results]);
+
+    // console.log(mainData);
+
+
     return (
         <div>
             {/* <Spin size="large" spinning={ isFetching}> */}
-                <Table
-                    onChange={onChange}
-                    dataSource={data?.map((u: any, i: number): taskSource => {
-                        const obj: taskSource = {
-                            no: i + 1,
-                            id: u?.id,
-                            extra_task: u?.extra_task,
-                            company_id: CompanyData?.data?.data.map((company: any) => { if (company.id === u?.company_id) { return company.name } }),
-                            customer_id: CustomerData?.data?.data.map((customer:any)=> {if(customer.id === u?.customer_id){return customer.name}}),
-                            service_id: ServiceData?.data?.data.map((service:any)=> {if(service.id === u?.service_id){return service.title}}),
-                            assigned_to_id: TeamData?.data?.data.map((team: any)=> {if(team.id === u?.assigned_to_id){return team.name}}),
-                            in_charge_id: AdminData?.data?.data.map((admin:any) => { if(admin.id === u.in_charge_id){return admin.username}}),
-                            note: u?.note,
-                            status: u?.status,
-                            action: { id: u.id, inCharge: u.in_charge_id },
-                            key: u.id,
-                        };
-                        
-                        return obj;
+            <Table
+                // onRow={(record, rowIndex) => {
+                //     return {
+                //         onClick: (event) => {
+                //             console.log(record);
+                //             isSuper !== "false" && document.location.replace(`/#/${record.id}`);
+                //         },
+                //     };
+                // }}
+                onChange={onChange}
+                dataSource={mainData?.map((u: any, i: number): taskSource => {
+                    const obj: taskSource = {
+                        no: i + 1,
+                        id: u?.id,
+                        company_id: CompanyData?.data?.data.map((company: any) => { if (company.id === u?.company_id) { return company.name } }),
+                        customer_id: CustomerData?.data?.data.map((customer: any) => { if (customer.id === u?.customer_id) { return customer.name } }),
+                        service_id: ServiceData?.data?.data.map((service: any) => { if (service.id === u?.service_id) { return service.title } }),
+                        assigned_to_id: TeamData?.data?.data.map((team: any) => { if (team.id === u?.assigned_to_id) { return team.name } }),
+                        in_charge_id: AdminData?.data?.data.map((admin: any) => { if (admin.id === u.in_charge_id) { return admin.username } }),
+                        note: u?.note,
+                        status: u?.status,
+                        action: { id: u.id, inCharge: u.in_charge_id },
+                        key: u.id,
+                    };
+                    return obj;
+                })
+                    .sort((a: taskSource, b: taskSource) => {
+                        if (a.status === "New" && b.status !== "New") {
+                            return 0;
+                        }
+                        if (a.status === "New") {
+                            return 1;
+                        }
+                        if (b.status !== "New") {
+                            return 2;
+                        }
+                        return 0;
                     })}
-                    columns={columns}
-                    rowClassName={rowClassName}
-                />
+                columns={columns}
+                rowClassName={rowClassName}
+                pagination={false}
+            />
+            <Space direction="vertical">
+                <Space wrap>
+                    <Button
+                        type="primary"
+                        icon={<CloudDownloadOutlined />}
+                        onClick={LoadMore}
+                    >
+                        load More!
+                    </Button>
+                </Space>
+            </Space>
             {/* </Spin> */}
         </div>
     );

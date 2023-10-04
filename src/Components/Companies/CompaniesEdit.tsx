@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCompanyOne } from "../../Hooks/Companies";
 import {
@@ -15,9 +15,11 @@ import {
   Select,
 } from "antd";
 import { companyController } from "../../API/LayoutApi/companies";
-import { AppleOutlined } from "@ant-design/icons";
+import { FormOutlined,DashboardOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
+import Table, { ColumnsType } from "antd/es/table";
+import instance from "../../API/api";
 
 const TabPane = Tabs.TabPane;
 type params = {
@@ -47,6 +49,44 @@ const CompanyEdit = () => {
         value: item?.id
       })
     )
+
+  const [customerData, setCustomerData] = useState<any>();
+
+  useEffect(() => {
+    if(id !== undefined){
+      const fetchNewData = async () => {
+        try {
+          const { data }: any = await instance(`customers-by-company/${id}`);
+          setCustomerData(data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchNewData()
+    }
+  }, [id])
+  console.log(customerData);
+  console.log(data);
+  
+  interface DataType {
+    name: string;
+    profession: string;
+    key: React.Key;
+  }
+
+  const columns: ColumnsType<DataType> = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'role',
+      dataIndex: 'profession',
+      key: 'profession',
+    },
+  ]
+  
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -64,7 +104,7 @@ const CompanyEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <FormOutlined />
                         MAIN FIELDS
                       </span>
                     }
@@ -134,6 +174,27 @@ const CompanyEdit = () => {
                         </Form.Item>
                       </Form>
                     </Space>
+                  </TabPane>
+                  <TabPane
+                    tab={
+                      <span>
+                        <DashboardOutlined />
+                        Drivers
+                      </span>
+                    }
+                    key="2"
+                  >
+                   <Table
+                      dataSource={customerData?.map((u: any): DataType => {
+                        const obj: DataType = {
+                          name: u?.name,
+                          profession: u?.profession,
+                          key: u?.id,
+                        };
+                        return obj;
+                      })}
+                      columns={columns}
+                    />
                   </TabPane>
                 </Tabs>
               </Space>

@@ -16,7 +16,7 @@ interface serviceSource {
     action: { id: numStr };
     key: React.Key;
 }
-const isSuper = localStorage.getItem("isSuperUser");
+const isSuper = sessionStorage.getItem("isSuperUser");
 const ServiceTable = ({
     data = [],
     onChange,
@@ -76,10 +76,9 @@ const ServiceTable = ({
                 };
                 return (
                     <Space>
-                        <Link to={`${id}`}>
+                        {/* <Link to={`${id}`}>
                             <Button disabled={isSuper === "false"}>Edit</Button>
-                        </Link>
-                        <Button disabled={isSuper === "false"} onClick={showConfirm}>Delete</Button>
+                        </Link> */}
                     </Space>
                 );
             },
@@ -89,6 +88,14 @@ const ServiceTable = ({
         <div>
             <Spin size="large" spinning={isLoading || isFetching}>
                 <Table
+                    onRow={(record, rowIndex) => {
+                        return {
+                            onClick: (event) => {
+                                console.log(record);
+                                isSuper !== "false" && document.location.replace(`/#/services/${record.id}`);
+                            },
+                        };
+                    }}
                     onChange={onChange}
                     dataSource={data?.map((u: any, i: number): serviceSource => {
                         let createCr = u.created_at;

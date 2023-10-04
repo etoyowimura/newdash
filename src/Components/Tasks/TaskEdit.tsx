@@ -15,7 +15,7 @@ import {
   Upload,
 } from "antd";
 import { taskController } from "../../API/LayoutApi/tasks";
-import { AppleOutlined, UploadOutlined } from "@ant-design/icons";
+import { FormOutlined, UploadOutlined, LinkOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import Notfound from '../../Utils/Notfound';
 import { useServiceData } from "../../Hooks/Services";
 import { companyController } from '../../API/LayoutApi/companies';
@@ -51,7 +51,7 @@ const TaskEdit = () => {
     refetch();
     navigate(-1);
   };
-  const isSuper = localStorage.getItem("isSuperUser");
+  const isSuper = sessionStorage.getItem("isSuperUser");
   const admin_id = localStorage.getItem("admin_id");
   const [companyId, setCompanyId] = useState<any>(null)
   const [companyValue, setCompanyValue] = useState<any>()
@@ -190,7 +190,7 @@ const TaskEdit = () => {
 
   return (
     <div>
-      {isSuper === 'true' || inCharge == admin_id || inCharge == null? (<Spin size="large" spinning={!data}>
+      {isSuper === 'true' || inCharge == admin_id || inCharge == null ? (<Spin size="large" spinning={!data}>
         <Watermark style={{ height: "100%" }}>
           {status === "loading" ? (
             <Spin size="large" spinning={!data} />
@@ -205,7 +205,7 @@ const TaskEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <FormOutlined />
                         MAIN FIELDS
                       </span>
                     }
@@ -315,34 +315,14 @@ const TaskEdit = () => {
                                 <Option value="Checking">Checking</Option>
                                 <Option value="Done">Done</Option>
                                 <Option value="Do PTI">Do PTI</Option>
-                                <Option value="No Need PTI">No need PTI</Option>
+                                <Option value="No need PTI">No need PTI</Option>
                               </Select>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                        <Row gutter={[16, 10]}>
-                          <Col span={2}>
-                            <Form.Item
-                              wrapperCol={{ span: "100%" }}
-                              label="Extra task"
-                              name="extra_task"
-                            >
-                             <Switch defaultChecked={data.extra_task}/>
-                            </Form.Item>
-                          </Col>
-                          <Col span={4}>
-                            <Form.Item
-                              wrapperCol={{ span: "100%" }}
-                              label="Extra task note"
-                              name="extra_task_note"
-                            >
-                              <Input />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Form.Item>
                           <Button type="primary" htmlType="submit">
-                            Submit
+                            Save
                           </Button>
                         </Form.Item>
                       </Form>
@@ -351,8 +331,8 @@ const TaskEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
-                        ATTACHMENT
+                        <LinkOutlined />
+                        ATTACHMENTS
                       </span>
                     }
                     key="2"
@@ -369,6 +349,7 @@ const TaskEdit = () => {
                         wrapperCol={{ span: 16 }}
                         initialValues={{ ...data.attachment_set[0] }}
                         autoComplete="off"
+                        onFinish={onSubmit}
                       >
                         <Row gutter={[16, 10]}>
                           <Col span={24}>
@@ -421,7 +402,11 @@ const TaskEdit = () => {
                                 <p className="ant-upload-text">Click or drag file to this area to upload</p>
                               </Upload.Dragger>
                             </Form.Item>
-
+                            <Form.Item>
+                              <Button type="primary" htmlType="submit">
+                                Save
+                              </Button>
+                            </Form.Item>
                           </Col>
                         </Row>
                       </Form>
@@ -430,7 +415,7 @@ const TaskEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <InfoCircleOutlined />
                         History
                       </span>
                     }

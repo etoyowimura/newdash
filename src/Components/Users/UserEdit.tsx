@@ -15,7 +15,7 @@ import {
   Select,
 } from "antd";
 import { userController } from "../../API/LayoutApi/users";
-import { AppleOutlined } from "@ant-design/icons";
+import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
 
@@ -72,7 +72,7 @@ const UserEdit = () => {
                   <TabPane
                     tab={
                       <span>
-                        <AppleOutlined />
+                        <FormOutlined />
                         MAIN FIELDS
                       </span>
                     }
