@@ -47,7 +47,7 @@ const UserEdit = () => {
   };
 
   const [teamId, setTeamId] = useState<any>();
-  const TeamData = useTeamData(teamId);
+  const TeamData = useTeamData('');
   const TeamOption: { label: string; value: any }[] | undefined =
     TeamData?.data?.data?.map(
       (item: { name: string; id: string }) => ({

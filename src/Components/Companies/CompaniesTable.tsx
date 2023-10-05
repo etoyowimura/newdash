@@ -7,7 +7,7 @@ import moment from "moment";
 import { useTeamData } from "../../Hooks/Teams";
 
 const { confirm } = Modal;
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem("isSuperUser");
 type numStr = string | number;
 
 interface companySource {
@@ -27,10 +27,10 @@ interface companySource {
 const CompanyTable = ({
   data = [],
   onChange,
-  // isLoading,
-  // isFetching,
-  // refetch,
-}: {
+}: // isLoading,
+// isFetching,
+// refetch,
+{
   data: any | undefined;
   onChange(current: any): void;
   // isLoading: boolean | undefined;
@@ -81,13 +81,7 @@ const CompanyTable = ({
       title: "Actions",
       dataIndex: "action",
       key: "action",
-      render: ({
-        id,
-        queryClient,
-      }: {
-        id: string;
-        queryClient: any;
-      }) => {
+      render: ({ id, queryClient }: { id: string; queryClient: any }) => {
         const showConfirm = () => {
           confirm({
             title: "Companies",
@@ -102,7 +96,7 @@ const CompanyTable = ({
                 // refetch();
               });
             },
-            onCancel() { },
+            onCancel() {},
           });
         };
         const enterLoading = (index: number) => {
@@ -121,12 +115,20 @@ const CompanyTable = ({
         };
         return (
           <Space>
-            {isSuper === 'true' && <Button
-              type="primary"
-              icon={<SyncOutlined />}
-              loading={loadings[Number(id)]}
-              onClick={() => enterLoading(Number(id))}
-            />}
+            <Link to={`${id}`}>
+              {isSuper === "true" && (
+                <Button>Edit</Button>
+              )}
+            </Link>
+
+            {isSuper === "true" && (
+              <Button
+                type="primary"
+                icon={<SyncOutlined />}
+                loading={loadings[Number(id)]}
+                onClick={() => enterLoading(Number(id))}
+              />
+            )}
           </Space>
         );
       },
@@ -150,7 +152,6 @@ const CompanyTable = ({
   //   }, 6000);
   // };
 
-
   function getStatusClassName(status: string) {
     if (isSuper === "false") {
       return "isnot";
@@ -159,19 +160,20 @@ const CompanyTable = ({
     }
   }
 
-  const TeamData = useTeamData('');
+  const TeamData = useTeamData("");
   return (
     <div>
       {/* <Spin size="large" spinning={isLoading || isFetching}> */}
       <Table
-        onRow={(record, rowIndex) => {
-          return {
-            onClick: (event) => {
-              console.log(record);
-              isSuper !== "false" && document.location.replace(`/#/companies/${record.id}`);
-            },
-          };
-        }}
+        // onRow={(record, rowIndex) => {
+        //   return {
+        //     onDoubleClick: (event) => {
+        //       console.log(record);
+        //       isSuper !== "false" &&
+        //         document.location.replace(`/#/companies/${record.id}`);
+        //     },
+        //   };
+        // }}
         onChange={onChange}
         dataSource={data?.map((u: any, i: number): companySource => {
           let createCr = u.created_at;
@@ -188,7 +190,11 @@ const CompanyTable = ({
               : "",
             action: { id: u.id },
             key: u.id,
-            team: TeamData?.data?.data.map((team: any) => { if (team.id === u?.team_id) { return team.name } }),
+            team: TeamData?.data?.data.map((team: any) => {
+              if (team.id === u?.team_id) {
+                return team.name;
+              }
+            }),
           };
           return obj;
         })}

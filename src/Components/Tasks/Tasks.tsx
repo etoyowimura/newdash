@@ -17,7 +17,7 @@ type Data = {
   isFetching?: boolean;
 };
 const { Option } = Select;
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem("isSuperUser");
 const Task = () => {
   const [open, setOpen] = useState(false);
   const [skip, setSkip] = useState<any>(1);
@@ -34,18 +34,34 @@ const Task = () => {
 
   const [characters, setCharacters] = useState<any>([]);
   const [id, setId] = useState<string>('');
-  const [status, setStatus] = useState<string>('all');
+  const [status, setStatus] = useState<string>('');
 
   const fetchData = async (apiEndpoint: string) => {
     try {
       const { data }: Data = await instance(apiEndpoint);
-      console.log(data);
-      
       setCharacters(data?.data);
     } catch (error) {
       console.error(error);
     }
   };
+
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //         const fetchNewData = async () => {
+  //           try {
+  //             const { data }: Data = await instance(`tasks/?page=1`);
+  //             setCharacters(data?.data);
+  //           } catch (error) {
+  //             console.error(error);
+  //           }
+            
+  //         };
+  //         fetchNewData();
+  //       }, 3000);
+  //       return () => {
+  //         clearInterval(intervalId);
+  //       }
+  // }, [])
 
   useEffect(() => {
     if (id !== "") {
@@ -66,7 +82,7 @@ const Task = () => {
   }, [id]);
 
   useEffect(() => {
-    if (status !== 'all') {
+    if (status !== '') {
       const fetchNewData = async () => {
         try {
           const { data }: any = await instance(`tasks/?status=${status}`);
@@ -82,7 +98,7 @@ const Task = () => {
   }, [status]);
 
   useEffect(() => {
-    if(status === 'all' && id === ''){const intervalId = setInterval(() => {
+    if(status === 'all' || status === '' && id === '' ){const intervalId = setInterval(() => {
       const now = moment();
       const formattedTimeMinusFiveSeconds = now.subtract(5, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
       const fetchNewData = async () => {
@@ -105,7 +121,31 @@ const Task = () => {
           //     return trimmedCharacters;
           // });
 
-          setCharacters((prev: any) => [...data?.data, ...prev.slice(0, prev.length - data?.data.length)]);
+          setCharacters((prev: any) => {
+            let i = 0;
+              data?.data.forEach((a:any) => { 
+                prev.forEach((b:any) => {
+                  if(a.id === b.id){
+                    console.log(a.id);
+                    i++;
+                    const index = prev.findIndex((object: any) => object.id === a.id);
+                    if (index !== -1) {
+                      prev.splice(index, 1);
+                    }
+                    // return [...data?.data, ...prev.slice(0, prev.length - data?.data.length)]
+                  }
+                })
+              })
+              if(data?.data.length > 0){
+                const j = data?.data.length - i;
+                const indexdata = [...data?.data, ...prev.slice(0, prev.length - j)];
+                return indexdata;
+              }else{
+                const indexdata = [...data?.data, ...prev];
+                return indexdata;
+              }
+            // }
+          });
         } catch (error) {
           console.error(error);
         }

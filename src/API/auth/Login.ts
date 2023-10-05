@@ -14,7 +14,7 @@ export const LoginApi = async ({ username, password }: loginInterface) => {
             headers: { "Content-Type": "application/json" },
         });
         localStorage.setItem("token", data?.data.token);
-        sessionStorage.setItem("isSuperUser", data?.data.is_superuser);
+        localStorage.setItem("isSuperUser", data?.data.is_superuser);
         localStorage.setItem("user", data?.data.user);
         localStorage.setItem("admin_id", data?.data.id);
         document.location.replace("/");

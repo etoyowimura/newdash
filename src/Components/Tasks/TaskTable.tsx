@@ -1,7 +1,7 @@
-import { Button, Modal, Space, Spin, Table, Tag } from "antd";
-import { Link } from "react-router-dom";
-import { ExclamationCircleFilled, CloudDownloadOutlined } from "@ant-design/icons";
-import { taskController } from "../../API/LayoutApi/tasks";
+import { Button, Space, Table } from "antd";
+
+import { CloudDownloadOutlined } from "@ant-design/icons";
+
 import { useCompanyData } from "../../Hooks/Companies";
 import { useCustomerData } from "../../Hooks/Customers";
 import { useServiceData } from "../../Hooks/Services";
@@ -10,7 +10,8 @@ import { useTeamData } from "../../Hooks/Teams";
 import '../../App.css'
 import { useEffect, useState } from "react";
 import instance from "../../API/api";
-const { confirm } = Modal;
+import moment from "moment";
+import { taskController } from "../../API/LayoutApi/tasks";
 
 type numStr = string | number;
 
@@ -22,13 +23,14 @@ interface taskSource {
     assigned_to_id: numStr;
     in_charge_id: numStr;
     id: numStr;
+    created_at: numStr;
     note: numStr;
     status: numStr;
     action: { id: numStr, inCharge: numStr };
     key: React.Key;
 }
 const admin_id = localStorage.getItem("admin_id");
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem('isSuperUser')
 const TaskTable = ({
     data = [],
     onChange,
@@ -82,42 +84,9 @@ const TaskTable = ({
             key: "note",
         },
         {
-            title: "Actions",
-            dataIndex: "action",
-            key: "action",
-            render: ({
-                id,
-                inCharge,
-            }: {
-                id: string;
-                inCharge: numStr;
-            }) => {
-                const showConfirm = () => {
-                    confirm({
-                        title: "Tasks",
-                        icon: <ExclamationCircleFilled />,
-                        content: "Do you want to delete this Task ?",
-                        onOk: async () => {
-                            return new Promise(async (resolve, reject) => {
-                                setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-                                await taskController.deleteTaskController(id);
-                                // refetch();
-                            }).catch(() => {
-                                // refetch();
-                            });
-                        },
-                        onCancel() { },
-                    });
-                };
-                return (
-                    <Space>
-                        <Link to={`${id}`}>
-                            {isSuper === 'true' || inCharge == null ? (<Button>Edit</Button>) :
-                                (<Button disabled={inCharge != admin_id}>Edit</Button>)}
-                        </Link>
-                    </Space>
-                );
-            },
+            title: "Created at",
+            dataIndex: "created_at",
+            key: "created_at",
         },
     ];
 
@@ -198,16 +167,18 @@ const TaskTable = ({
         <div>
             {/* <Spin size="large" spinning={ isFetching}> */}
             <Table
-                // onRow={(record, rowIndex) => {
-                //     return {
-                //         onClick: (event) => {
-                //             console.log(record);
-                //             isSuper !== "false" && document.location.replace(`/#/${record.id}`);
-                //         },
-                //     };
-                // }}
+                onRow={(record, rowIndex) => {
+                    return {
+                        onClick: (event) => {
+                            if (record.action.inCharge === null || record.action.inCharge == admin_id || isSuper === 'true'){
+                                document.location.replace(`/#/${record.id}`);
+                            }
+                        },
+                    }}}
+                
                 onChange={onChange}
                 dataSource={mainData?.map((u: any, i: number): taskSource => {
+                    let createCr = u.created_at;
                     const obj: taskSource = {
                         no: i + 1,
                         id: u?.id,
@@ -217,30 +188,32 @@ const TaskTable = ({
                         assigned_to_id: TeamData?.data?.data.map((team: any) => { if (team.id === u?.assigned_to_id) { return team.name } }),
                         in_charge_id: AdminData?.data?.data.map((admin: any) => { if (admin.id === u.in_charge_id) { return admin.username } }),
                         note: u?.note,
+                        created_at: createCr
+                                ? moment(createCr).format("YYYY-MM-DD, h:mm:ss a")
+                                : "",
                         status: u?.status,
                         action: { id: u.id, inCharge: u.in_charge_id },
                         key: u.id,
                     };
                     return obj;
-                })
-                    .sort((a: taskSource, b: taskSource) => {
-                        if (a.status === "New" && b.status !== "New") {
-                            return 0;
-                        }
-                        if (a.status === "New") {
-                            return 1;
-                        }
-                        if (b.status !== "New") {
-                            return 2;
-                        }
-                        return 0;
-                    })}
+                }).sort((a: taskSource, b: taskSource) => {
+                    if (a.status === "New" && b.status === "New") {
+                      return 0;
+                    }
+                    if (a.status === "New") {
+                      return -1;
+                    }
+                    if (b.status === "New") {
+                      return 1;
+                    }
+                    return 0;
+                  })}
                 columns={columns}
                 rowClassName={rowClassName}
                 pagination={false}
             />
-            <Space direction="vertical">
-                <Space wrap>
+            <Space style={{ width: '100%', marginTop: 10}} direction="vertical">
+                <Space style={{ width: '100%', justifyContent: 'flex-end' }} wrap>
                     <Button
                         type="primary"
                         icon={<CloudDownloadOutlined />}

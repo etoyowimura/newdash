@@ -33,7 +33,7 @@ function getItem(
     label,
   } as MenuItem;
 }
-const isSuperUser = sessionStorage.getItem('isSuperUser');
+const isSuperUser = localStorage.getItem('isSuperUser');
 
 export const allMenu: MenuItem[] = [
   getItem(<Link to="/">Tasks</Link>, "/", <FileDoneOutlined />),  

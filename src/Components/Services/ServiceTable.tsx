@@ -16,7 +16,7 @@ interface serviceSource {
     action: { id: numStr };
     key: React.Key;
 }
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem("isSuperUser");
 const ServiceTable = ({
     data = [],
     onChange,

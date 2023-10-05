@@ -9,7 +9,7 @@ export const LogoutApi = async () => {
             headers: { "Content-Type": "application/json" },
         });
         localStorage.removeItem("token");
-        sessionStorage.setItem("isSuperUser", 'empty');
+        localStorage.setItem("isSuperUser", 'empty');
         localStorage.removeItem("user");
         // localStorage.removeItem("fmcsa_count");
         localStorage.removeItem("admin_id");

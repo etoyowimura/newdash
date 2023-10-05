@@ -43,7 +43,7 @@ const App: React.FC = () => {
               collapsible
               collapsed={collapsed}
               onCollapse={(value) => setCollapsed(value)}
-              style={{ height: "100vh", overflow: "scroll", borderRight: '2px solid #000' }}
+              style={{ height: "100vh", borderRight: '2px solid #000' }}
             >
               <div className={collapsed ? 'logo-collapsed':'logo'}>TT ELD</div>
               <Menu

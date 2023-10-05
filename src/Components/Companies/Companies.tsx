@@ -16,7 +16,7 @@ type Data = {
   isFetching?: boolean;
 };
 const { Option } = Select;
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem("isSuperUser");
 const Company = () => {
   const [skip, setSkip] = useState(0);
   const [name, setName] = useState<any>("");
@@ -86,7 +86,7 @@ const Company = () => {
             value={name}
           />
           </div>
-        <Radio.Group onChange={(e:RadioChangeEvent) => setStatus(e.target.value)} size="large" value={status} style={{marginLeft: 20, }}>
+        <Radio.Group onChange={(e:RadioChangeEvent) => setStatus(e.target.value)} size="middle" value={status} style={{marginLeft: 20, }}>
           <Radio.Button value={true}>Active</Radio.Button>
           <Radio.Button value={false}>Inactive</Radio.Button>
         </Radio.Group>
@@ -94,7 +94,7 @@ const Company = () => {
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={"middle"}
           onClick={showModal}
           disabled={isSuper === "false"}
         >

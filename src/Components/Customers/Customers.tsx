@@ -14,7 +14,7 @@ type Data = {
   refetch?: any;
   isFetching?: boolean;
 };
-const isSuper = sessionStorage.getItem("isSuperUser");
+const isSuper = localStorage.getItem("isSuperUser");
 const Customer = () => {
   const [skip, setSkip] = useState(0);
   const [id, setId] = useState<string>("");

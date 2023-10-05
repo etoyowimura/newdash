@@ -50,8 +50,9 @@ const TaskEdit = () => {
     await taskController.taskPatch(value, id);
     refetch();
     navigate(-1);
+ document.location.replace(`/`);
   };
-  const isSuper = sessionStorage.getItem("isSuperUser");
+  const isSuper = localStorage.getItem("isSuperUser");
   const admin_id = localStorage.getItem("admin_id");
   const [companyId, setCompanyId] = useState<any>(null)
   const [companyValue, setCompanyValue] = useState<any>()
@@ -187,6 +188,15 @@ const TaskEdit = () => {
       setInChage(data.in_charge_id)
     }
   }, [data])
+
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm("Вы уверены, что хотите удалить эту задачу?");
+    if(shouldDelete && id !== undefined){
+      taskController.deleteTaskController(id).then((data:any) => {
+          document.location.replace(`/`);
+      })
+    }
+  }
 
   return (
     <div>
@@ -324,6 +334,10 @@ const TaskEdit = () => {
                           <Button type="primary" htmlType="submit">
                             Save
                           </Button>
+                          <br />
+                         {isSuper !== 'false' && (<Button style={{marginTop: 15 }} type="primary" danger onClick={ClickDelete}>
+                            Delete 
+                         </Button>)}
                         </Form.Item>
                       </Form>
                     </Space>
