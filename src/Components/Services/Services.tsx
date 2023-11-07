@@ -4,18 +4,9 @@ import AddService from "./AddService";
 import { Button } from "antd"; 
 import ServiceTable from "./ServiceTable";
 
-type Data = {
-  data?: {
-    data: Array<any>;
-    count: number | string;
-  };
-  isLoading?: boolean;
-  refetch?: any;
-  isFetching?: boolean;
-};
 const isSuper = localStorage.getItem("isSuperUser");
 const Service = () => {
-  const { data, isLoading, refetch, isFetching }: Data = useServiceData('');
+  const { data, isLoading, refetch} = useServiceData();
   const [open, setOpen] = useState(false);
   const showModal = () => {
     setOpen(true);
@@ -42,9 +33,9 @@ const Service = () => {
         </Button>
       </span>
       <ServiceTable
-        data={data?.data}
+        data={data}
         isLoading={isLoading}
-        isFetching={isFetching}
+        refetch={refetch}
       />
     </div>
   );

@@ -1,13 +1,21 @@
 import { useQuery } from "react-query";
-import { statController } from "../../API/LayoutApi/statistic";
+import { TStatGetParams, statController } from "../../API/LayoutApi/statistic";
 
-export const useStatsData = (id: string): object => {
+export const useStatsData = ({name, team, start_date, end_date}: TStatGetParams) => {
     return useQuery(
-        [`stats/${id}`, id],
-        () => statController.read(id),
+        [`stats/all-users/`, name, team, start_date, end_date],
+        () => statController.read({name, team, start_date, end_date}),
         { refetchOnWindowFocus: false }
     );
 };
+export const useStatTeamData = ({name, start_date, end_date}: TStatGetParams) => {
+    return useQuery(
+        [`stats/all-teams/`, name, start_date, end_date],
+        () => statController.team({name, start_date, end_date}),
+        { refetchOnWindowFocus: false }
+    );
+};
+
 
 export const useStatOne = (
     statId: number | string | undefined

@@ -1,4 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
+import { statController } from "../../API/LayoutApi/statistic";
+import { useTeamData } from "../../Hooks/Teams/index";
+import { useStatTeamData, useStatsData } from "../../Hooks/Stats";
+import { TStatTeam } from "../../types/Statistic/TStat";
+import StatTable from "./StatisticTable";
+import StatTeamTable from "./StatisticTeamTable";
+import Search from "antd/es/input/Search";
+import dayjs from "dayjs";
 import {
   Button,
   DatePicker,
@@ -7,12 +16,6 @@ import {
   Space,
   Switch,
 } from "antd";
-import StatTable from "./StatisticTable";
-import { useTeamData } from "../../Hooks/Teams/index";
-import Search from "antd/es/input/Search";
-import instance from "../../API/api";
-import dayjs from "dayjs";
-import { statController } from "../../API/LayoutApi/statistic";
 
 const Stat = () => {
   const now = dayjs();
@@ -23,16 +26,15 @@ const Stat = () => {
   const start_date = `${currentDate.format("YYYY-MM")}-01 00:00:00`;
   const end_date = `${nextMonth.format("YYYY-MM")}-01 00:00:00`;
 
-  const [id, setId] = useState<string>("");
+  const [name, setName] = useState<string>("");
   const [table, setTable] = useState<boolean>(false);
   const [team, setTeam] = useState<any>("");
-  const [characters, setCharacters] = useState<any>();
   const [startDate, setStartDate] = useState(start_date);
   const [endDate, setEndDate] = useState(end_date);
 
   const teamData = useTeamData("");
   const teamOptions: { label: string; value: any }[] | undefined =
-    teamData?.data?.data.map((item: { name: string; id: string }) => ({
+    teamData?.data?.map((item) => ({
       label: item?.name,
       value: item?.name,
     }));
@@ -53,7 +55,7 @@ const Stat = () => {
     const trimmedEndDate = endDate.slice(0, 10);
     const fileName = `${trimmedStartDate}-${trimmedEndDate}`;
     if (!table) {
-      const teamName = `${team}_${fileName}`
+      const teamName = `${team}_${fileName}`;
       statController.saveUsersStats(teamName, startDate, endDate, team);
     } else {
       statController.saveTeamStats(fileName, startDate, endDate);
@@ -68,7 +70,6 @@ const Stat = () => {
   };
 
   const onChangeDate: DatePickerProps["onChange"] = (date) => {
-
     if (!date) {
       setStartDate("");
       setEndDate("");
@@ -85,35 +86,19 @@ const Stat = () => {
     }
   };
 
-  useEffect(() => {
-    if (startDate && endDate) {
-      if (table === true) {
-        const fetchNewData = async () => {
-          try {
-            const { data }: any = await instance(
-              `stats/all-teams/?start_date=${startDate}&end_date=${endDate}&`
-            );
-            setCharacters(data);
-          } catch (error) {
-            console.error(error);
-          }
-        };
-        fetchNewData();
-      } else {
-        const fetchNewData = async () => {
-          try {
-            const { data }: any = await instance(
-              `stats/all-users/?start_date=${startDate}&end_date=${endDate}&name=${id}&team=${team}`
-            );
-            setCharacters(data);
-          } catch (error) {
-            console.error(error);
-          }
-        };
-        fetchNewData();
-      }
-    }
-  }, [team, id, table, startDate, endDate]);
+  const { data, refetch, isLoading } = useStatsData({
+    name: name,
+    team: team,
+    start_date: startDate,
+    end_date: endDate,
+  });
+  interface DataType {
+    data?: TStatTeam[],
+    refetch: <TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined) => Promise<QueryObserverResult<TStatTeam[], unknown>>,
+    isLoading: boolean;
+  }
+  const TeamData: DataType = useStatTeamData({name: '', start_date: startDate, end_date: endDate})
+  
 
   return (
     <div>
@@ -130,8 +115,8 @@ const Stat = () => {
             style={{ width: 300 }}
             type="text"
             placeholder="Search by Name"
-            onChange={(event) => setId(event.target.value)}
-            value={id}
+            onChange={(event) => setName(event.target.value)}
+            value={name}
             allowClear
           />
           <Select
@@ -162,7 +147,11 @@ const Stat = () => {
         </div>
       </span>
 
-      <StatTable data={characters} />
+      {table ? (
+        <StatTable data={{data, teamData}} isLoading={isLoading} refetch={refetch} />
+      ) : (
+        <StatTeamTable data={TeamData?.data} isLoading={TeamData?.isLoading} refetch={TeamData?.refetch} />
+      )}
       <Button type="primary" onClick={handleSave}>
         Save as file
       </Button>

@@ -1,10 +1,10 @@
 import { useQuery } from "react-query";
 import { serviceController } from "../../API/LayoutApi/services";
 
-export const useServiceData = (id: string): any => {
+export const useServiceData = () => {
   return useQuery(
-    [`services/${id}`, id],
-    () => serviceController.read(id),
+    [`services/`],
+    () => serviceController.read(),
     { refetchOnWindowFocus: false }
   );
 };

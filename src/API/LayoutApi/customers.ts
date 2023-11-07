@@ -1,9 +1,11 @@
 import { TCustomer } from "../../types/Customer/TCustomer";
+import { TPagination } from "../../types/common/TPagination";
 import instance from "../api";
 import { message } from "antd";
 
 export type TCustomerGetParams = {
   name?: string,
+  page?: string | number;
   is_active?: boolean;
 }
 export type TCustomerByCompanyGetParams = {
@@ -17,9 +19,10 @@ export const customerController = {
 
     if (!!filterObject.name) params.name = filterObject.name;
     if (!!filterObject.is_active) params.is_active = filterObject.is_active;
+    if (!!filterObject.page) params.page = filterObject.page;
 
     const { data } = await instance.get<TCustomer[]>(
-      `customers`, {params}
+      `customers/`, {params}
     );
     return data;
   },

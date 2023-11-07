@@ -1,10 +1,10 @@
 import { useQuery } from "react-query";
-import { companyController } from "../../API/LayoutApi/companies";
+import { TCompanyGetParams, companyController } from "../../API/LayoutApi/companies";
 
-export const useCompanyData = (id: any): any => {
+export const useCompanyData = ({name, page, is_active} : TCompanyGetParams) => {
   return useQuery(
-    [`companies/${id}`, id],
-    () => companyController.read(id),
+    [`companies/`, name, page, is_active],
+    () => companyController.read({name: name, page: page, is_active: is_active}),
     { refetchOnWindowFocus: false }
   );
 };

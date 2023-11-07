@@ -22,7 +22,7 @@ const AddUser = ({
   const [teamId, setTeamId] = useState<any>();
   const TeamData = useTeamData(teamId);
   const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map((item: { name: string; id: string }) => ({
+    TeamData?.data?.map((item) => ({
       label: item?.name,
       value: item?.id,
     }));

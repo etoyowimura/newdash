@@ -3,8 +3,7 @@ import AddCustomer from "./AddCustomer";
 import { Button, Radio, RadioChangeEvent } from "antd";
 import CustomerTable from "./CustomersTable";
 import Search from "antd/es/input/Search";
-import { useQuery } from "react-query";
-import {  customerController } from "../../API/LayoutApi/customers";
+import { useCustomerData } from "../../Hooks/Customers";
 
 const isSuper = localStorage.getItem("isSuperUser");
 const Customer = () => {
@@ -16,14 +15,9 @@ const Customer = () => {
 
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState<boolean>();
-  
-  const {isLoading, data} = useQuery({
-    queryKey: ['customers', name, isActive],
-    queryFn: () => customerController.read({
-      name,
-      is_active: isActive
-    })
-  })
+  const {isLoading, data} = useCustomerData({name:name, is_active:isActive})
+
+
   return (
     <div>
       <span

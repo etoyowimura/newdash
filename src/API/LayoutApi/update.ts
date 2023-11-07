@@ -40,7 +40,7 @@ export const updateController = {
     });
     return data;
   },
-  async updatePatch(updateData: any, update_id: string) {
+  async updatePatch(updateData: any, update_id: string | number) {
     const key = "updatable";
     message.loading({ content: "Loading...", key });
     const { data }: { data: any } = await instance(`shift-update/${update_id}/`, {

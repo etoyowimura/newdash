@@ -1,17 +1,22 @@
+import { TService } from "../../types/Service/TService";
 import instance from "../api";
 import { message } from "antd";
 
 export const serviceController = {
-  async read(id:string) {
-    const { data }: { data: object } = await instance(
-      `services/`
-    );
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
+  // async read(id:string) {
+  //   const { data }: { data: object } = await instance(
+  //     `services/`
+  //   );
+  //   const getCount = async () => {
+  //     return 0;
+  //   };
+  //   const count = await getCount();
 
-    return { data, count: count };
+  //   return { data, count: count };
+  // },
+  async read() {
+    const { data } = await instance.get<TService[]>(`services/`);
+    return data;
   },
 
   async serviceOne(Id: string | number | undefined) {

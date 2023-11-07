@@ -16,17 +16,20 @@ export type TTasksGetParams = {
 export const taskController = {
   async read(filterObject: TTasksGetParams) {
     const params = {...filterObject};
-
+  
     if (!!filterObject.page && filterObject.page !== '0') params.page = filterObject.page;
     if (!!filterObject.company) params.company = filterObject.company;
     if (!!filterObject.customer) params.customer = filterObject.customer;
     if (!!filterObject.user) params.user = filterObject.user;
-    if (!!filterObject.status) params.status = filterObject.status;
-    if (!!filterObject.team) params.team = filterObject.team;
-    
-    
+    if (Array.isArray(filterObject.status)) {
+      params.status = filterObject.status.join(", "); // Объединяем значения в одну строку, разделенную запятыми
+    }
+    if (Array.isArray(filterObject.team)) {
+      params.team = filterObject.team.join(", "); // Повторяющиеся параметры
+    }
+  
     const { data } = await instance.get<TPagination<TTask[]>>(
-      `tasks`, {params}
+      `tasks/`, {params}
     );
     return data;
   },
@@ -81,7 +84,7 @@ export const taskController = {
     });
     return data;
   },
-  async deleteTaskController(task_id: string) {
+  async deleteTaskController(task_id: number) {
     message.loading({ content: "Loading...", key: task_id });
     let res;
     let error = "";

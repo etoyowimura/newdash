@@ -1,15 +1,47 @@
+import { TStat, TStatTeam } from "../../types/Statistic/TStat";
 import instance from "../api";
 
-export const statController = {
-  async read(id: string) {
-    const { data }: { data: object } = await instance(`stats/all-users/`);
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
+export type TStatGetParams = {
+  name?: string,
+  team?: string;
+  start_date?: string;
+  end_date?: string;
+}
 
-    return { data, count: count };
+export type TStatTeamGetParams = {
+  name?: string,
+  start_date?: string;
+  end_date?: string;
+}
+
+export const statController = {
+  async read(filterObject: TStatGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.name) params.name = filterObject.name;
+    if (!!filterObject.team) params.team = filterObject.team;
+    if (!!filterObject.start_date) params.start_date = filterObject.start_date;
+    if (!!filterObject.end_date) params.end_date = filterObject.end_date;
+
+    const { data } = await instance.get<TStat[]>(
+      `stats/all-users/`, {params}
+    );
+    return data;
   },
+
+  async team(filterObject: TStatTeamGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.name) params.name = filterObject.name;
+    if (!!filterObject.start_date) params.start_date = filterObject.start_date;
+    if (!!filterObject.end_date) params.end_date = filterObject.end_date;
+
+    const { data } = await instance.get<TStatTeam[]>(
+      `stats/all-teams/`, {params}
+    );
+    return data;
+  },
+
 
   async saveUsersStats(fileName: string, startDate: string, endDate: string, team: string) {
     const response = await instance.post(`stats/all-users/?start_date=${startDate}&end_date=${endDate}&team=${team}`, {
@@ -32,6 +64,7 @@ export const statController = {
     window.URL.revokeObjectURL(downloadUrl);
     return response.data;
   },
+
   async saveTeamStats(fileName: string, startDate: string, endDate: string) {
     const response = await instance.post(`stats/all-teams/?start_date=${startDate}&end_date=${endDate}`, {
       headers: {

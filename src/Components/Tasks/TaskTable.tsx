@@ -11,7 +11,16 @@ import { taskController } from "../../API/LayoutApi/tasks";
 import { useNavigate } from "react-router-dom";
 import { TPagination } from "../../types/common/TPagination";
 import { TTask } from "../../types/Tasks/TTasks";
-
+import {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+  UseQueryResult,
+} from "react-query";
+import { TCompany } from "../../types/Company/TCompany";
+import { TService } from "../../types/Service/TService";
+import { TCustomer } from "../../types/Customer/TCustomer";
+import { TUser } from "../../types/User/TUser";
 
 const admin_id = localStorage.getItem("admin_id");
 const isSuper = localStorage.getItem("isSuperUser");
@@ -20,9 +29,17 @@ const TaskTable = ({
   isLoading,
   refetch,
 }: {
-  data?: TPagination<TTask[]>;
-  isLoading?: boolean;
-  refetch?: any;
+  data: {
+    characters: TTask[] | undefined;
+    CompanyData: UseQueryResult<TCompany[], unknown>;
+    CustomerData: UseQueryResult<TCustomer[], unknown>;
+    ServiceData: UseQueryResult<TService[], unknown>;
+    AdminData: UseQueryResult<TUser[], unknown>;
+  };
+  isLoading: boolean;
+  refetch: <TPageData>(
+    options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
+  ) => Promise<QueryObserverResult<TPagination<TTask[]>, unknown>>;
 }) => {
   const statusClick = (record: any) => {
     if (record.status === "New") {
@@ -51,12 +68,6 @@ const TaskTable = ({
     }
   };
 
-  const CompanyData = useCompanyData("");
-  const CustomerData = useCustomerData("");
-  const AdminData = useUserData("");
-  const ServiceData = useServiceData("");
-  const TeamData = useTeamData("");
-
   const rowClassName = (record: TTask) => {
     if (record.status === "New") {
       return "new-status-row";
@@ -80,73 +91,53 @@ const TaskTable = ({
     };
   }, []);
 
-  const handleRowClick = (record: any, event: any) => {
+  const handleRowClick = (record: TTask, event: any) => {
     if (isTextSelected) {
       return;
     }
     if (
       event.target.classList.contains("ant-table-cell") &&
-      (record.action.in_charge_id === null ||
-        record.action.in_charge_id == admin_id ||
+      (record.in_charge_id === null ||
+        record.in_charge_id === +!!admin_id ||
         isSuper === "true")
     ) {
       navigate(`/${record.id}`);
     }
   };
 
-  
   return (
     <div>
       <Table
         onRow={(record) => ({
           onClick: (event) => handleRowClick(record, event),
         })}
-        dataSource={data?.data.map((u, i) => ({
+        dataSource={data?.characters?.map((u, i) => ({
           ...u,
           no: i + 1,
-          company_id: CompanyData?.data?.data.map((company: any) => {
-            if (company.id === u?.company_id) {
-              return company.name;
-            }
-          }),
-          customer_id: CustomerData?.data?.map((customer: any) => {
-            if (customer.id === u?.customer_id) {
-              return customer.name;
-            }
-          }),
-          service_id: ServiceData?.data?.data.map((service: any) => {
-            if (service.id === u?.service_id) {
-              return service.title;
-            }
-          }),
-          assigned_to_id: TeamData?.data?.data.map((team: any) => {
-            if (team.id === u?.assigned_to_id) {
-              return team.name;
-            }
-          }),
-          in_charge_id: AdminData?.data?.data.map((admin: any) => {
-            if (admin.id === u.in_charge_id) {
-              return admin.username;
-            }
-          }),
-          created_at: u.created_at
-            ? moment(u.created_at).format("DD.MM.YYYY, HH:mm")
-            : "",
-          action: u,
-          key: u.id,
+          company_name: (data.CompanyData?.data || []).find(
+            (company) => company.id === u?.company_id
+          )?.name,
+          customer_name: (data.CustomerData?.data || []).find(
+            (customer) => customer.id === u?.customer_id
+          )?.name,
+          service_title: (data.ServiceData?.data || []).find(
+            (service) => service.id === u?.service_id
+          )?.title,
+          in_charge_name: (data.AdminData?.data || []).find(
+            (admin) => admin.id === u.in_charge_id
+          )?.username,
+          created: u?.created_at,
         }))}
         columns={[
           {
             title: "No",
             dataIndex: "no",
-            key: "no",
             width: "5%",
             fixed: "left",
           },
           {
             title: "Company",
-            dataIndex: "company_id",
-            key: "company_id",
+            dataIndex: "company_name",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -159,8 +150,7 @@ const TaskTable = ({
           },
           {
             title: "Customer",
-            dataIndex: "customer_id",
-            key: "customer_id",
+            dataIndex: "customer_name",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -173,15 +163,12 @@ const TaskTable = ({
           },
           {
             title: "Service",
-            dataIndex: "service_id",
-            key: "service_id",
+            dataIndex: "service_title",
             width: "7%",
           },
           {
             title: "Status",
             dataIndex: "status",
-            key: "status",
-
             ellipsis: {
               showTitle: false,
             },
@@ -191,8 +178,7 @@ const TaskTable = ({
           },
           {
             title: "In charge",
-            dataIndex: "in_charge_id",
-            key: "in_charge_id",
+            dataIndex: "in_charge_name",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -206,7 +192,6 @@ const TaskTable = ({
           {
             title: "Note",
             dataIndex: "note",
-            key: "note",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -220,23 +205,20 @@ const TaskTable = ({
           {
             title: "PTI",
             dataIndex: "pti",
-            key: "pti",
             width: "8%",
             render: (pti: boolean) => (pti ? "No need" : "Do"),
           },
           {
             title: "Created at",
             dataIndex: "created_at",
-            key: "created_at",
             width: "12%",
           },
           {
             title: "Actions",
             dataIndex: "action",
-            key: "action",
             fixed: "right",
             width: "8%",
-            render: (record: any) => {
+            render: (text, record) => {
               return (
                 <div>
                   {isSuper === "false" ? (
@@ -251,7 +233,8 @@ const TaskTable = ({
                         </Button>
                       )}
                       {record.status === "Checking" &&
-                        record.in_charge_id == admin_id && (
+                        !!admin_id &&
+                        record.in_charge_id == +admin_id && (
                           <Button
                             type="primary"
                             style={{ background: "#595959" }}
@@ -261,18 +244,19 @@ const TaskTable = ({
                           </Button>
                         )}
                     </Space>
-                  ): (
+                  ) : (
                     <Space>
                       <Button
-                      type="primary" 
-                      danger
-                      onClick={e => {
-                        const shouldDelete = window.confirm(
-                        "Вы уверены, что хотите удалить эту задачу?"
-                      );
-                      if (shouldDelete && record.id !== undefined) {
-                        taskController.deleteTaskController(record.id)
-                      }}}
+                        type="primary"
+                        danger
+                        onClick={(e) => {
+                          const shouldDelete = window.confirm(
+                            "Вы уверены, что хотите удалить эту задачу?"
+                          );
+                          if (shouldDelete && record.id !== undefined) {
+                            taskController.deleteTaskController(record.id);
+                          }
+                        }}
                       >
                         Delete
                       </Button>

@@ -3,8 +3,8 @@ import AddCompany from "./AddCompanies";
 import { Button, Radio, RadioChangeEvent } from "antd";
 import CompanyTable from "./CompaniesTable";
 import Search from "antd/es/input/Search";
-import { companyController } from "../../API/LayoutApi/companies";
-import { useQuery } from "react-query";
+
+import { useCompanyData } from "../../Hooks/Companies";
 
 const isSuper = localStorage.getItem("isSuperUser");
 const Company = () => {
@@ -15,15 +15,7 @@ const Company = () => {
 
   const [name, setName] = useState<any>("");
   const [isActive, setIsActive] = useState<boolean>();
-
-  const { isLoading, data } = useQuery({
-    queryKey: ["companies", name, isActive],
-    queryFn: () =>
-      companyController.read({
-        name,
-        is_active: isActive,
-      }),
-  });
+  const { data, isLoading, refetch } = useCompanyData({name: name, is_active: isActive})
 
   return (
     <div>
@@ -35,7 +27,7 @@ const Company = () => {
           marginBottom: 6,
         }}
       >
-        {open && <AddCompany open={open} setOpen={setOpen} />}
+        {open && <AddCompany open={open} refetch={refetch} setOpen={setOpen} />}
         <div className="search">
           <Search
             style={{ margin: 4 }}
@@ -67,7 +59,7 @@ const Company = () => {
         </Button>
       </span>
 
-      <CompanyTable data={data?.data} isLoading={isLoading} />
+      <CompanyTable data={data} isLoading={isLoading} />
     </div>
   );
 };

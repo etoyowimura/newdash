@@ -119,9 +119,9 @@ const TaskEdit = () => {
     }
   }, [serviceData]);
 
-  const ServiceData = useServiceData("");
+  const ServiceData = useServiceData();
   const ServiceOption: { label: string; value: any }[] | undefined =
-    ServiceData?.data?.data?.map((item: { title: string; id: string }) => ({
+    ServiceData?.data?.map((item) => ({
       label: item?.title,
       value: item?.id,
     }));
@@ -129,7 +129,7 @@ const TaskEdit = () => {
   const [teamId, setTeamId] = useState<any>(data?.name);
   const TeamData = useTeamData("");
   const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map((item: { name: string; id: string }) => ({
+    TeamData?.data?.map((item) => ({
       label: item?.name,
       value: item?.id,
     }));

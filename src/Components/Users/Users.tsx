@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUserData } from "../../Hooks/Users";
 import AddUser from "./AddUser";
-import { Button } from "antd";
+import { Button, Select } from "antd";
 import UserTable from "./UserTable";
 import Search from "antd/es/input/Search";
-import instance from "../../API/api";
 
 type Data = {
   data?: {
@@ -17,21 +16,14 @@ type Data = {
 };
 const User = () => {
   const [open, setOpen] = useState(false);
-
+  const [name, setName]= useState('');
+  const [team, setTeam] = useState('');
   const showModal = () => {
     setOpen(true);
   };
-  const [characters, setCharacters] = useState<any>([]);
-  const [name, setName] = useState<any>("");
-  useEffect(() => {
-    const fetchData = async () => { 
-      try {
-        const { data }: Data = await instance(`users/admins/?name=${name}`);
-        setCharacters(data);
-      } catch (error) {}
-    };
-    fetchData();
-  }, [name]);
+
+  const {data, refetch, isLoading} = useUserData({name: name, team: team})
+
 
   return (
     <div>
@@ -47,11 +39,17 @@ const User = () => {
         <Search
           style={{ width: "20%" }}
           type="text"
-          placeholder="Search by Customer"
+          placeholder="Search by Users"
           onChange={(event) => setName(event.target.value)}
           value={name}
           allowClear
         />
+        <Select
+          // options={
+            
+          // }
+        >
+        </Select>
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
@@ -62,7 +60,9 @@ const User = () => {
         </Button>
       </span>
       <UserTable
-        data={characters}
+        data={data}
+        isLoading={isLoading}
+        refetch={refetch}
       />
     </div>
   );

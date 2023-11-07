@@ -24,18 +24,17 @@ const AddTask = ({
   const [customerName, setCustomerName] = useState<any>("");
   const [characters, setCharacters] = useState<any>([]);
   const [customerData, setCustomerData] = useState<any>([]);
-  const ServiceData = useServiceData("");
-  const TeamData = useTeamData("");
+  const ServiceData = useServiceData();
+  const TeamData = useTeamData('');
   const [companyId, setCompanyId] = useState<any>();
   const [options, setOptions] = useState<any>();
   const [cusOptions, setCusOptions] = useState<any>();
 
   const ServiceOption: { label: string; value: any }[] | undefined =
-    ServiceData?.data?.data?.map((item: { title: string; id: string }) => ({
+    ServiceData?.data?.map((item) => ({
       label: item?.title,
       value: item?.id,
     }));
-  // ---------------------------------------------
 
   type Data = {
     data?: {
@@ -66,27 +65,6 @@ const AddTask = ({
       }));
     setOptions(CompanyOption);
   }, [characters]);
-  // const [teamOptions, setTeamOptions] = useState<any>();
-  // useEffect(() => {
-  //   if (companyId) {
-  //     companyController.companyOne(companyId).then(data => {
-  //       const team = data.team_id;
-  //       setTeamId(team)
-  //     })
-  //   }
-  // }, [companyId])
-  // useEffect(() => {
-  //   if(teamId !== undefined){
-  //     teamController.teamOne(teamId).then(data => {
-  //       const options = {
-  //         label: data.name,
-  //         value: data.id
-  //       }
-  //       const opt = [options]
-  //       setTeamOptions(opt)
-  //     })
-  //   }
-  // }, [teamId])
 
   useEffect(() => {
     if (companyId !== undefined) {
@@ -122,9 +100,9 @@ const AddTask = ({
       }));
     setCusOptions(CustomerOption);
   }, [customerData]);
-
+  
   const teamOptions: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data.map((item: { name: string; id: string }) => ({
+    TeamData?.data?.map((item) => ({
       label: item?.name,
       value: item?.id,
     }));
@@ -153,7 +131,6 @@ function handlePaste(event: any) {
         .addTaskFile(formData)
         .then((response) => {
           const fileId = response.id;
-          const n = [response.file];
           setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
           const updatedValues = form.getFieldsValue();
           updatedValues.attachment_ids = [

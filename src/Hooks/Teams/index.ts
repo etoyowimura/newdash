@@ -1,10 +1,10 @@
 import { useQuery } from "react-query";
 import { teamController } from "../../API/LayoutApi/teams";
 
-export const useTeamData = (id: string): any => {
+export const useTeamData = (name?: string) => {
   return useQuery(
-    [`teams/${id}/`, id],
-    () => teamController.read(id),
+    [`teams/?name=${name}/`, name],
+    () => teamController.read(name),
     { refetchOnWindowFocus: false }
   );
 };

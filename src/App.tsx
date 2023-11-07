@@ -269,7 +269,7 @@ const App: React.FC = () => {
                   }}
                 >
                   <Routes>
-                    {items.map((u: any, index: any) => (
+                    {items.map((u: any) => (
                       <Route key={u.key} path={u.path} element={u.component} />
                     ))}
                     <Route path="*" element={<Notfound />} />

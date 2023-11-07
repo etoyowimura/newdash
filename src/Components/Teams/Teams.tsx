@@ -14,9 +14,9 @@ type Data = {
   isFetching?: boolean;
 };
 const Team = () => {
-  const { data, isLoading, refetch, isFetching }: Data = useTeamData('');
+  const [name, setName] = useState<string>('')
+  const { data, isLoading, refetch } = useTeamData(name);
   const [open, setOpen] = useState(false);
- 
   const showModal = () => {
     setOpen(true);
   };
@@ -43,9 +43,9 @@ const Team = () => {
       </span>
 
       <TeamTable
-        data={data?.data}
+        data={data}
         isLoading={isLoading}
-        isFetching={isFetching}
+        refetch={refetch}
       />
     </div>
   );

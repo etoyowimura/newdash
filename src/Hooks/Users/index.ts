@@ -1,10 +1,10 @@
 import { useQuery } from "react-query";
-import { userController } from "../../API/LayoutApi/users";
+import { TUsersGetParams, userController } from "../../API/LayoutApi/users";
 
-export const useUserData = (id: string): any => {
+export const useUserData = ({name, team}: TUsersGetParams) => {
   return useQuery(
-    [`users/${id}`, id],
-    () => userController.read(id),
+    [`users/admins`, {name, team}],
+    () => userController.read({name, team}),
     { refetchOnWindowFocus: false }
   );
 };

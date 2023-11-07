@@ -6,12 +6,17 @@ import Search from "antd/es/input/Search";
 import { useTeamData } from "../../Hooks/Teams";
 import { StepForwardOutlined, StepBackwardOutlined } from "@ant-design/icons";
 import { useTasks } from "../../Hooks/Tasks";
+import { TTask } from "../../types/Tasks/TTasks";
+import { useCompanyData } from "../../Hooks/Companies";
+import { useCustomerData } from "../../Hooks/Customers";
+import { useUserData } from "../../Hooks/Users";
+import { useServiceData } from "../../Hooks/Services";
 
 const { Option } = Select;
 const isSuper = localStorage.getItem("isSuperUser");
 const Task = () => {
   const [open, setOpen] = useState(false);
-  const [characters, setCharacters] = useState<any>([]);
+  const [characters, setCharacters] = useState<TTask[] | undefined>();
   const [team, setTeam] = useState<any>("");
   const [company, setCompany] = useState<string>("");
   const [customer, setCustomer] = useState<string>("");
@@ -24,6 +29,11 @@ const Task = () => {
   const reconnectingMessageKey = "reconnectingMessage";
   const reconnectingMessageContent = "Reconnecting...";
 
+  const CompanyData = useCompanyData({});
+  const CustomerData = useCustomerData({});
+  const AdminData = useUserData({});
+  const ServiceData = useServiceData();
+  
   useEffect(() => {
     let reconnectingTimeout: NodeJS.Timeout | null = null;
 
@@ -65,6 +75,10 @@ const Task = () => {
   }, [isOnline]);
 
   let taskSocket: WebSocket;
+  interface newData {
+    type: string;
+    task: TTask
+  }
   useEffect(() => {
     const connect = async () => {
       try {
@@ -80,22 +94,19 @@ const Task = () => {
             console.log("open");
           });
           taskSocket.addEventListener("message", (event) => {
-            const newData = JSON.parse(event.data);
-            setCharacters((prev: any) => {
-              if (prev?.length >= 15) {
+            const newData: newData = JSON.parse(event.data);
+            setCharacters((prev: TTask[] | undefined) => {
+              if (prev && prev?.length >= 15) {
                 prev?.pop();
               }
-              console.log(prev);
-
+            
               if (newData.type === "task_create") {
-                return [newData.task, ...prev];
+                return [newData.task, ...(prev || [])];
               } else if (newData.type === "task_update") {
                 if (isSuper === "true") {
-                  const updatedData = prev.filter(
-                    (b: any) => b.id !== newData.task.id
-                  );
-                  const data = [newData.task, ...updatedData];
-                  data.sort((a: any, b: any) => {
+                  const updatedData = prev?.filter((b: TTask) => b.id !== newData.task.id) || [];
+                  const data: TTask[] = [newData.task, ...updatedData];
+                  data.sort((a: TTask, b: TTask) => {
                     if (a.status === "New" && b.status === "New") {
                       return 0;
                     }
@@ -109,13 +120,13 @@ const Task = () => {
                   });
                   return data;
                 } else {
-                  const data = prev.map((b: any) =>
+                  const data = (prev || []).map((b: TTask) =>
                     b.id === newData.task.id ? newData.task : b
                   );
                   return data;
                 }
               } else if (newData.type === "task_delete") {
-                const data = prev.filter((b: any) => b.id !== newData.task.id);
+                const data = (prev || []).filter((b: TTask) => b.id !== newData.task.id);
                 return data;
               }
               return prev;
@@ -136,7 +147,7 @@ const Task = () => {
 
   const teamData = useTeamData("");
   const teamOptions: { label: string; value: any }[] | undefined =
-    teamData?.data?.data.map((item: { name: string; id: string }) => ({
+    teamData?.data?.map((item) => ({
       label: item?.name,
       value: item?.id,
     }));
@@ -246,7 +257,7 @@ const Task = () => {
         </Button>
       </span>
       <TaskTable
-        data={{ data: characters, page_size: 15 }}
+        data={{characters, CompanyData, CustomerData, ServiceData, AdminData}}
         isLoading={isLoading}
         refetch={refetch}
       />

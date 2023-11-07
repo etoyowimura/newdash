@@ -1,17 +1,25 @@
+import { TTeam } from "../../types/Team/TTeam";
 import instance from "../api";
 import { message } from "antd";
 
 export const teamController = {
-  async read(id:string) {
-    const { data }: { data: object } = await instance(
-      `teams/`
-    );
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
+  // async read(id:string) {
+  //   const { data }: { data: object } = await instance(
+  //     `teams/`
+  //   );
+  //   const getCount = async () => {
+  //     return 0;
+  //   };
+  //   const count = await getCount();
 
-    return { data, count: count };
+  //   return { data, count: count };
+  // },
+
+  async read(name?: string) {
+    const { data } = await instance.get<TTeam[]>(
+      `teams/?name=${name}`, 
+    );
+    return data;
   },
 
   async teamOne(Id: string | number | undefined) {

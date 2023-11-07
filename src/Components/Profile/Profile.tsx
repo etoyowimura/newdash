@@ -32,7 +32,6 @@ const Profile = () => {
   const { data, refetch } = useProfData();
   const statsData = useMystatsData();
   const [range, setRange] = useState<any>(1);
-  console.log(statsData);
 
   const onSubmit = async (value: TProfilePutParams) => {
     await prof.profPatch(value)

@@ -1,16 +1,23 @@
+import { TUser } from "../../types/User/TUser";
 import instance from "../api";
 import { message } from "antd";
-export const userController = {
-  async read(id:string) {
-    const { data }: { data: object } = await instance(
-      `users/admins/`
-    );
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
 
-    return { data, count: count };
+export type TUsersGetParams = {
+  name?: string,
+  team?: string;
+}
+
+export const userController = {
+  async read(filterObject: TUsersGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.name) params.name = filterObject.name;
+    if (!!filterObject.team) params.team = filterObject.team;
+
+    const { data } = await instance.get<TUser[]>(
+      `users/admins/`, {params}
+    );
+    return data;
   },
 
   async userOne(Id: string | number | undefined) {
