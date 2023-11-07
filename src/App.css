@@ -29,47 +29,21 @@
   }
   .logo {
       font-size: 28px;
-      font-family: Arial, Helvetica, sans-serif; 
+      /* font-family: Arial, Helvetica, sans-serif;  */
       font-weight: 600;
       text-align: center;
       padding: 14px 0;
-      color: #ffffff;
+      color: #fff;   
   }   
 
   .logo-collapsed{
     font-size: 18px;
-      font-family: Arial, Helvetica, sans-serif; 
+      /* font-family: Arial, Helvetica, sans-serif;  */
       font-weight: 500;
       text-align: center;
       padding: 20px 0;
-      color: #fff;
+      color: #fff
   }
-
-  .new-status{
-    background-color: rgb(122, 167, 67);
-    border: 1px solid #bcb5b5;
-    border-radius: 5px;
-    padding: 4px 6px;
-  }
-
-  .checking-status {
-    background-color: rgba(249, 249, 50, 0.479);
-    border: 1px solid #bcb5b5;
-    border-radius: 5px;
-    padding: 4px 6px;
-  }
-  
-  /* Стили для статуса "done" */
-  .done-status {
-    background-color: rgba(147, 202, 167, 0.51);
-    border: 1px solid #bcb5b5;
-    border-radius: 5px;
-    padding: 4px 6px;
-  }
-
-.new-status-row{
-  background: #afafaf38;
-}
 
 .isnot{
   display: none;
@@ -77,4 +51,77 @@
 
 .ant-table-row{
   cursor: pointer;
+}
+
+#element::-webkit-scrollbar {
+  width: 10px;
+  background-color: #f9f9fd;
+}
+
+#element::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: #595959;
+}
+
+#element::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
+  border-radius: 10px;
+  background-color: #f9f9fd;
+}
+
+.ant-layout-sider-trigger{
+  background: none !important;
+  border-top: 1px solid #cecece;
+}
+
+.status-new {
+  background-color: #91caff;
+  border: 1px solid #bfbfbf;
+  padding: 4px;
+  color: black;
+  border-radius: 5px;
+}
+
+.status-checking {
+  background-color: #fffb8f;
+  border: 1px solid #bfbfbf;
+  padding: 4px;
+  color: black;
+  border-radius:5px;
+}
+
+.status-in-progress {
+  background-color: #fffb8f;
+  border: 1px solid #bfbfbf;
+  padding: 4px;
+  color: black;
+  border-radius:5px;
+}
+
+.status-done {
+  background-color: #b7eb8f;
+  border: 1px solid #bfbfbf;
+  padding: 2px;
+  color: black;
+  border-radius: 5px;
+}
+
+.status-paper {
+  background-color: #c5c9cd;
+  border: 1px solid #bfbfbf;
+  padding: 4px;
+  color: black;
+  border-radius: 5px;
+}
+
+.status-setup{
+  background-color: rgb(233, 142, 142);
+  border: 1px solid #bfbfbf;
+  padding: 4px;
+  color: black;
+  border-radius: 5px;
+}
+
+.new-status-row {
+  background-color: rgba(170, 170, 170, 0.44);
 }

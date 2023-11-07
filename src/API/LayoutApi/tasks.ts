@@ -1,27 +1,44 @@
+import { TTask } from "../../types/Tasks/TTasks";
+import { TPagination } from "../../types/common/TPagination";
 import instance from "../api";
 import { message } from "antd";
 
-export const taskController = {
-  async read(id:string) {
-    const { data }: { data: object } = await instance(
-      `tasks/?customer=${id}`
-    );
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
 
-    return { data, count: count };
+export type TTasksGetParams = {
+  company?: string,
+  customer?: string;
+  user?: string;
+  status?: string;
+  team?: string;
+  page?: string;
+}
+
+export const taskController = {
+  async read(filterObject: TTasksGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.page && filterObject.page !== '0') params.page = filterObject.page;
+    if (!!filterObject.company) params.company = filterObject.company;
+    if (!!filterObject.customer) params.customer = filterObject.customer;
+    if (!!filterObject.user) params.user = filterObject.user;
+    if (!!filterObject.status) params.status = filterObject.status;
+    if (!!filterObject.team) params.team = filterObject.team;
+    
+    
+    const { data } = await instance.get<TPagination<TTask[]>>(
+      `tasks`, {params}
+    );
+    return data;
   },
 
   async getHistory(task_id:number) {
-    const { data }: { data: object } = await instance(`task-history/${task_id}`);
+    const { data }: { data: object } = await instance(`task-history/${task_id}/`);
     return data
   },
 
 
   async taskOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`task/${Id}`);
+    const { data }: { data: any } = await instance(`task/${Id}/`);
     return data;
   },
 
@@ -33,8 +50,8 @@ export const taskController = {
       data: taskData,
     }).then((u) => {
       setTimeout(() => {
-        message.success({ content: "Loaded!", key, duration: 2 });
-      }, 1000);
+        message.success({ content: "Saved!", key, duration: 2 });
+      }, 500);
       return u;
     });
     return data;
@@ -55,6 +72,7 @@ export const taskController = {
     });
     return data;
   },
+  
   async addTaskFile(formData: any) {
     const { data } = await instance.post("attachment/", formData, {
       headers: {
@@ -68,7 +86,7 @@ export const taskController = {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`task/${task_id}`, {
+      const { data } = await instance(`task/${task_id}/`, {
         method: "DELETE",
       }).then((u) => {
         setTimeout(() => {
@@ -87,7 +105,7 @@ export const taskController = {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`attachment/${id}`, {
+      const { data } = await instance(`attachment/${id}/`, {
         method: "DELETE",
       }).then((u) => {
         setTimeout(() => {
@@ -100,18 +118,5 @@ export const taskController = {
       error = "Oops something went wrong!";
     }
     return { data: res, error };
-  },
-  // async taskFinderByCompany(task_id: string) {
-  //   const { data }: { data: Array<any> } = await instance(
-  //     `tasks/?company=${task_id}`
-  //   );
-  //   return data;
-  // },
-  async taskFinderByCustomer(task_id: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `tasks/?customer=${task_id}`
-    );
-    return data;
-  },
-
+  }
 };

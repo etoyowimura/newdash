@@ -1,28 +1,46 @@
+import { TCustomer } from "../../types/Customer/TCustomer";
 import instance from "../api";
 import { message } from "antd";
 
-export const customerController = {
-  async read(id:string) {
-    const { data }: { data: object } = await instance(
-      `customers/?name=${id}`
-    );
-    const getCount = async () => {
-      return 0;
-    };
-    const count = await getCount();
+export type TCustomerGetParams = {
+  name?: string,
+  is_active?: boolean;
+}
+export type TCustomerByCompanyGetParams = {
+  name?: string,
+  id?: string;
+}
 
-    return { data, count: count };
+export const customerController = {
+  async read(filterObject: TCustomerGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.name) params.name = filterObject.name;
+    if (!!filterObject.is_active) params.is_active = filterObject.is_active;
+
+    const { data } = await instance.get<TCustomer[]>(
+      `customers`, {params}
+    );
+    return data;
   },
 
 
   async customerOne(Id: string) {
-    const { data }: { data: any } = await instance(`customer/${Id}`);
+    const { data }: { data: any } = await instance(`customer/${Id}/`);
     return data;
   },
-    async customerByCompany(Id: string, name: string) {
-    const { data }: { data: any } = await instance(`customers-by-company/${Id}/?name=${name}`);
-    return data;
+
+  async customerByCompany(id: string, name: string) {
+    const params = {name};
+    if (!!name) params.name = name;
+
+    const { data } = await instance.get<TCustomer[]>(
+      `customers-by-company/${id}/`, {params}
+    );
+    return data
   },
+
+  
 
   async customerPatch(customerData: any, id: string) {
     const key = "updatable";
@@ -74,11 +92,4 @@ export const customerController = {
     }
     return { data: res, error };
   },
-  async customerFinderId(id: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `customers/?name=${id}`
-    );
-    return data;
-  },
-
 };

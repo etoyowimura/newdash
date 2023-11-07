@@ -13,9 +13,21 @@ export const LoginApi = async ({ username, password }: loginInterface) => {
             data: { username, password },
             headers: { "Content-Type": "application/json" },
         });
+        
+        const userObject = {
+            first_name: data?.data.first_name,
+            last_name: data?.data.last_name,
+            username: data?.data.username,
+            admin_id: data?.data.id,
+            isSuperUser: data?.data.id_superuser,
+            role: data?.data.role,
+            timezone: data?.data.timezone,
+          };
+          
+        const userJSON = JSON.stringify(userObject);
+        localStorage.setItem("user", userJSON);
         localStorage.setItem("token", data?.data.token);
         localStorage.setItem("isSuperUser", data?.data.is_superuser);
-        localStorage.setItem("user", data?.data.user);
         localStorage.setItem("admin_id", data?.data.id);
         document.location.replace("/");
     } catch (err) {

@@ -1,49 +1,29 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddCustomer from "./AddCustomer";
-import { Button } from "antd";
+import { Button, Radio, RadioChangeEvent } from "antd";
 import CustomerTable from "./CustomersTable";
-import instance from "../../API/api";
-import {SearchOutlined} from "@ant-design/icons";
 import Search from "antd/es/input/Search";
-type Data = {
-  data?: {
-    data: Array<any>;
-    count: number | string;
-  };
-  isLoading?: boolean;
-  refetch?: any;
-  isFetching?: boolean;
-};
+import { useQuery } from "react-query";
+import {  customerController } from "../../API/LayoutApi/customers";
+
 const isSuper = localStorage.getItem("isSuperUser");
 const Customer = () => {
-  const [skip, setSkip] = useState(0);
-  const [id, setId] = useState<string>("");
   const [open, setOpen] = useState(false);
-  const onChange = (query: any) => {
-    // setSkip(10 * (parseInt(query.current) - 1));
-    const a = query.current;
-    setSkip(a)
-  };
-  console.log(skip);
-  
+
   const showModal = () => {
     setOpen(true);
   };
 
-  const [ characters, setCharacters] = useState<any>([])
-  useEffect(() => {
-    const fetchData = async () => {
-        try {
-            const {data}: Data = await instance(`customers/?name=${id}`)
-            setCharacters(data)
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
-    fetchData()
-}, [id])
-console.log(characters);
+  const [name, setName] = useState('');
+  const [isActive, setIsActive] = useState<boolean>();
+  
+  const {isLoading, data} = useQuery({
+    queryKey: ['customers', name, isActive],
+    queryFn: () => customerController.read({
+      name,
+      is_active: isActive
+    })
+  })
   return (
     <div>
       <span
@@ -51,17 +31,28 @@ console.log(characters);
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          marginBottom: 6
         }}
       >
         {open && <AddCustomer open={open} setOpen={setOpen} />}
         <div className="search">
-          <Search 
+          <Search
             type="text"
             placeholder={"Search Customer"}
-            onChange={event => setId(event.target.value)}
-            value={id}
+            onChange={(event) => setName(event.target.value)}
+            value={name}
           />
         </div>
+        <Radio.Group
+          onChange={(e: RadioChangeEvent) => setIsActive(e.target.value)}
+          size="middle"
+          value={isActive}
+          style={{ marginLeft: 20 }}
+        >
+          <Radio.Button value={undefined}>All</Radio.Button>
+          <Radio.Button value={true}>Active</Radio.Button>
+          <Radio.Button value={false}>Inactive</Radio.Button>
+        </Radio.Group>
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
@@ -74,11 +65,8 @@ console.log(characters);
       </span>
 
       <CustomerTable
-        data={characters}
-        onChange={onChange}
-        // isLoading={isLoading}
-        // isFetching={isFetching}
-        // refetch={refetch}
+        data={data}
+        isLoading={isLoading}
       />
     </div>
   );

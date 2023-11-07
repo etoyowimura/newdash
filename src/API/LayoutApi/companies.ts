@@ -1,10 +1,21 @@
+import { TCompany } from "../../types/Company/TCompany";
 import instance from "../api";
 import { message } from "antd";
 
+export type TCompanyGetParams = {
+  name?: string,
+  is_active?: boolean;
+}
+
 export const companyController = {
-  async read(id:any) {
-    const { data }: { data: object } = await instance(
-      `companies/?name=${id}`
+  async read(filterObject: TCompanyGetParams) {
+    const params = {...filterObject};
+
+    if (!!filterObject.name) params.name = filterObject.name;
+    if (!!filterObject.is_active) params.is_active = filterObject.is_active;
+
+    const { data } = await instance.get<TCompany[]>(
+      `companies`, {params}
     );
     const getCount = async () => {
       return 0;
@@ -15,7 +26,7 @@ export const companyController = {
   },
 
   async companyOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`company/${Id}`);
+    const { data }: { data: any } = await instance(`company/${Id}/`);
     return data;
   },
 
@@ -50,12 +61,36 @@ export const companyController = {
     return data;
   },
 
-  async deleteCompanyController(company_id: string) {
-    message.loading({ content: "Loading...", key: company_id });
+  async SyncCompany(companyId: any, api: any) {
+    message.loading({ content: "Loading...", key: companyId });
     let res;
     let error = "";
     try {
-      const { data } = await instance(`company/${company_id}`, {
+      const { data } = await instance(`company-sync/${companyId}/`, {
+        method: "POST",
+        data: {
+          ...companyId,
+        },
+      }).then((u) => {
+        setTimeout(() => {
+          message.success({content: u?.data.message, key: companyId, duration: 2});
+        }, 1000);
+        return u;
+      });
+      res = data;
+    } catch (err:any) {
+      error = "Oops something went wrong!";
+      message.error({content: err.response.data.message, key: companyId, duration: 2});
+    }
+    return { data: res, error };
+  },
+
+  async deleteCompanyController(company_id: string) {
+    message.loading({ content: "Loading...", key: company_id });
+    let res;
+    let error;
+    try {
+      const { data } = await instance(`company/${company_id}/`, {
         method: "DELETE",
       }).then((u) => {
         setTimeout(() => {
@@ -68,12 +103,5 @@ export const companyController = {
       error = "Oops something went wrong!";
     }
     return { data: res, error };
-  },
-  async companyFinderId(name: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `companies/?name=${name}`
-    );
-    return data;
-  },
-
+  }
 };

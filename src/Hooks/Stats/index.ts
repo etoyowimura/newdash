@@ -18,7 +18,3 @@ export const useStatOne = (
         { refetchOnWindowFocus: false }
     );
 };
-
-export const useFindByTeam = async (query: any) => {
-    return await statController.statFinderId(query);
-};

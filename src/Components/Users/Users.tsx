@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUserData } from "../../Hooks/Users";
 import AddUser from "./AddUser";
 import { Button } from "antd";
 import UserTable from "./UserTable";
+import Search from "antd/es/input/Search";
+import instance from "../../API/api";
 
 type Data = {
   data?: {
@@ -14,16 +16,23 @@ type Data = {
   isFetching?: boolean;
 };
 const User = () => {
-  const [skip, setSkip] = useState(0);
-  const [id, setId] = useState<string>("");
-  const { data, isLoading, refetch, isFetching }: Data = useUserData(id);
   const [open, setOpen] = useState(false);
-  const onChange = (query: any) => {
-    setSkip(10 * (parseInt(query.current) - 1));
-  };
+
   const showModal = () => {
     setOpen(true);
   };
+  const [characters, setCharacters] = useState<any>([]);
+  const [name, setName] = useState<any>("");
+  useEffect(() => {
+    const fetchData = async () => { 
+      try {
+        const { data }: Data = await instance(`users/admins/?name=${name}`);
+        setCharacters(data);
+      } catch (error) {}
+    };
+    fetchData();
+  }, [name]);
+
   return (
     <div>
       <span
@@ -31,9 +40,18 @@ const User = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          marginBottom: 10,
         }}
       >
-        {open && <AddUser refetch={refetch} open={open} setOpen={setOpen} />}
+        {open && <AddUser open={open} setOpen={setOpen} />}
+        <Search
+          style={{ width: "20%" }}
+          type="text"
+          placeholder="Search by Customer"
+          onChange={(event) => setName(event.target.value)}
+          value={name}
+          allowClear
+        />
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
@@ -43,13 +61,8 @@ const User = () => {
           Add User
         </Button>
       </span>
-
       <UserTable
-        data={data?.data}
-        onChange={onChange}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        refetch={refetch}
+        data={characters}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useServiceOne } from "../../Hooks/Services";
 import {
@@ -11,26 +10,18 @@ import {
   Col,
   Input,
   Button,
-  Switch,
 } from "antd";
 import { serviceController } from "../../API/LayoutApi/services";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-
+const isSuper = localStorage.getItem("isSuperUser");
 const TabPane = Tabs.TabPane;
 
-// type Data = {
-//     data?: {
-//         data: Array<any>,
-//         count: number
-//     }
-// }
 type params = {
   readonly id: any;
 };
-
 type MyObjectType = {
-  [key: string | number]: any; // Индексная подпись с параметром типа 'string'
+  [key: string | number]: any;
 };
 const ServiceEdit = () => {
   const { id } = useParams<params>();
@@ -40,9 +31,20 @@ const ServiceEdit = () => {
   const onSubmit = async (value: any) => {
     await serviceController.servicePatch(value, id);
     refetch();
-    navigate(-1);
+    document.location.replace('/#/services')
   };
   
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm(
+      "Вы уверены, что хотите удалить эту сервис?"
+    );
+    if (shouldDelete && id !== undefined) {
+      serviceController.deleteServiceController(id).then((data: any) => {
+        document.location.replace(`/#/services`);
+      });
+    }
+  };
+
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -100,6 +102,16 @@ const ServiceEdit = () => {
                           </Col>
                         </Row>
                         <Form.Item>
+                        {isSuper === "true" && (
+                            <Button
+                              onClick={() => ClickDelete()}
+                              type="primary"
+                              style={{marginRight: 10}}
+                              danger
+                            >
+                              Delete
+                            </Button>
+                          )}
                           <Button type="primary" htmlType="submit">
                             Submit
                           </Button>

@@ -1,161 +1,115 @@
-
-
-import React, { useEffect, useState } from "react";
-import { Button, Modal, Space, Spin, Table, Tag } from "antd";
-import { Link, useSearchParams } from "react-router-dom";
-import { ExclamationCircleFilled } from "@ant-design/icons";
-import { userController } from "../../API/LayoutApi/users";
+import { Spin, Table, Tag } from "antd";
 import { useTeamData } from "../../Hooks/Teams";
-import { useUserData } from "../../Hooks/Users";
-
-const { confirm } = Modal;
 
 type numStr = string | number;
-
 interface userSource {
-    no: numStr;
-    first_name: numStr;
-    last_name: numStr;
-    username: numStr;
-    is_staff: numStr;
-    team: numStr;
-    id: numStr;
-    action: { id: numStr };
-    key: React.Key;
+  no: numStr;
+  first_name: numStr;
+  last_name: numStr;
+  username: numStr;
+  is_active: numStr;
+  team: numStr;
+  id: numStr;
+  action: { id: numStr };
+  key: React.Key;
 }
 
-const UserTable = ({
-    data = [],
-    onChange,
-    isLoading,
-    isFetching,
-    refetch,
-}: {
-    data: any | undefined;
-    onChange(current: any): void;
-    isLoading: boolean | undefined;
-    isFetching: boolean | undefined;
-    refetch(): void;
-}) => {
-    const columns: object[] = [
+const UserTable = ({ data = [] }: { data: any | undefined }) => {
+  const columns: object[] = [
+    {
+      title: "No",
+      dataIndex: "no",
+      key: "no",
+      width: "5%",
+    },
+    {
+      title: "Username",
+      dataIndex: "username",
+      key: "username",
+    },
+    {
+      title: "Team",
+      dataIndex: "team",
+      key: "team",
+    },
+    // {
+    //   title: "First name",
+    //   dataIndex: "first_name",
+    //   key: "first_name",
+    // },
+    // {
+    //   title: "Last name",
+    //   dataIndex: "last_name",
+    //   key: "last_name",
+    // },
+    {
+      title: "Is Active",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (tag: boolean) => (
+        <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
+      ),
+      filters: [
         {
-            title: "No",
-            dataIndex: "no",
-            key: "no",
+          text: "True",
+          value: true,
         },
         {
-            title: "Username",
-            dataIndex: "username",
-            key: "username",
+          text: "False",
+          value: false,
         },
-        {
-            title: "Team",
-            dataIndex: "team",
-            key: "team",
-        },
-        {
-            title: "First name",
-            dataIndex: "first_name",
-            key: "first_name",
-        },
-        {
-            title: "Last name",
-            dataIndex: "last_name",
-            key: "last_name",
-        },
-        {
-            title: "Is Staff",
-            dataIndex: "is_staff",
-            key: "is_staff",
-            render: (tag: boolean) => (
-                <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
-            ),
-            filters: [
-                {
-                    text: "True",
-                    value: true,
-                },
-                {
-                    text: "False",
-                    value: false,
-                },
-            ],
-            onFilter: (value: any, record: any) => {
-                return record.is_active === value;
+      ],
+      onFilter: (value: any, record: any) => {
+        return record.is_active === value;
+      },
+    },
+  ];
+  const TeamData = useTeamData("");
+
+  return (
+    <div>
+      <Table
+        onRow={(record) => {
+          let isTextSelected = false;
+          document.addEventListener("selectionchange", () => {
+            const selection = window.getSelection();
+            if (selection !== null && selection.toString() !== "") {
+              isTextSelected = true;
+            } else {
+              isTextSelected = false;
+            }
+          });
+          return {
+            onClick: () => {
+              if (isTextSelected) {
+                return
+              }
+              document.location.replace(`/#/users/${record.id}`);
             },
-        },
-        // {
-        //     title: "Actions",
-        //     dataIndex: "action",
-        //     key: "action",
-        //     render: ({
-        //         id,
-        //         queryClient,
-        //     }: {
-        //         id: string;
-        //         queryClient: any;
-        //     }) => {
-        //         const showConfirm = () => {
-        //             confirm({
-        //                 title: "Users",
-        //                 icon: <ExclamationCircleFilled />,
-        //                 content: "Do you want to delete this User ?",
-        //                 onOk: async () => {
-        //                     return new Promise(async (resolve, reject) => {
-        //                         setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        //                         await userController.deleteUserController(id);
-        //                         // refetch();
-        //                     }).catch(() => {
-        //                         // refetch();
-        //                     });
-        //                 },
-        //                 onCancel() { },
-        //             });
-        //         };
-        //         return (
-        //             <Space>
-        //                 {/* <Link to={`${id}`}>
-        //                     <Button>Edit</Button>
-        //                 </Link> */}
-        //             </Space>
-        //         );
-        //     },
-        // },
-    ];
-    const TeamData = useTeamData('');
-    
-    return (
-        <div>
-            <Spin size="large" spinning={isLoading || isFetching}>
-                <Table
-                onRow={(record, rowIndex) => {
-                    return {
-                        onClick: (event) => {
-                            console.log(record);
-                            document.location.replace(`/#/users/${record.id}`);
-                        },
-                    };
-                }}
-                    onChange={onChange}
-                    dataSource={data?.map((u: any, i: number): userSource => {
-                        const obj: userSource = {
-                            no: i + 1,
-                            first_name: u?.first_name,
-                            last_name: u?.last_name,
-                            username: u?.username,
-                            is_staff: u?.is_staff,
-                            team: TeamData?.data?.data.map((team: any)=> {if(team.id === u?.team_id){return team.name}}),
-                            id: u?.id,
-                            action: { id: u.id },
-                            key: u.id,
-                        };
-                        return obj;
-                    })}
-                    columns={columns}
-                />
-            </Spin>
-        </div>
-    );
+          };
+        }}
+        dataSource={data?.map((u: any, i: number): userSource => {
+          const obj: userSource = {
+            no: i + 1,
+            first_name: u?.first_name,
+            last_name: u?.last_name,
+            username: u?.username,
+            is_active: u?.is_active,
+            team: TeamData?.data?.data.map((team: any) => {
+              if (team.id === u?.team_id) {
+                return team?.name;
+              }
+            }),
+            id: u?.id,
+            action: { id: u.id },
+            key: u.id,
+          };
+          return obj;
+        })}
+        columns={columns}
+      />
+    </div>
+  );
 };
 
 export default UserTable;

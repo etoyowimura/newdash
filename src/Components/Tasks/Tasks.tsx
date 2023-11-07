@@ -1,171 +1,179 @@
 import { useEffect, useState } from "react";
 import AddTask from "./AddTask";
-import { Button, Input, Select, Upload } from 'antd';
+import { Button, Input, Select, Space, message } from "antd";
 import TaskTable from "./TaskTable";
-import instance from "../../API/api";
-import { SearchOutlined } from "@ant-design/icons";
-import moment from "moment";
 import Search from "antd/es/input/Search";
+import { useTeamData } from "../../Hooks/Teams";
+import { StepForwardOutlined, StepBackwardOutlined } from "@ant-design/icons";
+import { useTasks } from "../../Hooks/Tasks";
 
-type Data = {
-  data?: {
-    data: Array<any>;
-    count: number | string;
-  };
-  isLoading?: boolean;
-  refetch?: any;
-  isFetching?: boolean;
-};
 const { Option } = Select;
 const isSuper = localStorage.getItem("isSuperUser");
 const Task = () => {
   const [open, setOpen] = useState(false);
-  const [skip, setSkip] = useState<any>(1);
-  const onChange = (query: any) => {
-    if (query.loadings !== 1) {
-      const a = query.loadings;
-      setSkip(a);
-    }
-    if (query.prev !== undefined) {
-      const a = query.prev;
-      setCharacters(a);
-    }
-  };
-
   const [characters, setCharacters] = useState<any>([]);
-  const [id, setId] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
+  const [team, setTeam] = useState<any>("");
+  const [company, setCompany] = useState<string>("");
+  const [customer, setCustomer] = useState<string>("");
+  const [user, setUser] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
+  const [page, setPage] = useState<any>(1);
+  const token = localStorage.getItem("token");
 
-  const fetchData = async (apiEndpoint: string) => {
-    try {
-      const { data }: Data = await instance(apiEndpoint);
-      setCharacters(data?.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //         const fetchNewData = async () => {
-  //           try {
-  //             const { data }: Data = await instance(`tasks/?page=1`);
-  //             setCharacters(data?.data);
-  //           } catch (error) {
-  //             console.error(error);
-  //           }
-            
-  //         };
-  //         fetchNewData();
-  //       }, 3000);
-  //       return () => {
-  //         clearInterval(intervalId);
-  //       }
-  // }, [])
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const reconnectingMessageKey = "reconnectingMessage";
+  const reconnectingMessageContent = "Reconnecting...";
 
   useEffect(() => {
-    if (id !== "") {
-      fetchData(`tasks/?customer=${id}`);
-      const fetchNewData = async () => {
-        try {
-          const { data }: any = await instance(`tasks/?customer=${id}`);
-          setCharacters(data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      fetchNewData()
-    }
-    if (id === "") {
-      fetchData(`tasks/?page=1`);
-    }
-  }, [id]);
+    let reconnectingTimeout: NodeJS.Timeout | null = null;
 
-  useEffect(() => {
-    if (status !== '') {
-      const fetchNewData = async () => {
-        try {
-          const { data }: any = await instance(`tasks/?status=${status}`);
-          setCharacters(data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      fetchNewData()
-    } else {
-      fetchData(`tasks/?page=1`);
-    }
-  }, [status]);
+    const handleOnlineStatus = () => {
+      setIsOnline(true);
+      message.success({ content: "Reconnected!" });
+      if (isOnline === false) {
+        message.destroy(reconnectingMessageKey);
+      }
+      if (reconnectingTimeout) {
+        clearTimeout(reconnectingTimeout);
+      }
+    };
 
-  useEffect(() => {
-    if(status === 'all' || status === '' && id === '' ){const intervalId = setInterval(() => {
-      const now = moment();
-      const formattedTimeMinusFiveSeconds = now.subtract(5, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
-      const fetchNewData = async () => {
-        try {
-          const { data }: any = await instance(`tasks/new/?time=${formattedTimeMinusFiveSeconds}`);
-          // setCharacters((prevCharacters: Array<any>) => {
-          //   const updatedCharacters = prevCharacters.map((prevChar) => {
-          //     const matchingDataItem = data?.data.find((dataItem) => dataItem.id === prevChar.id);
-          //     if (matchingDataItem) {
-          //       return matchingDataItem;
-          //     }
-          //     return prevChar;
-          //   });
-          //   data?.data.forEach((dataItem) => {
-          //     if (!updatedCharacters.some((prevChar) => prevChar.id === dataItem.id)) {
-          //       updatedCharacters.unshift(dataItem);
-          //     }
-          //   });
-          //     const trimmedCharacters = updatedCharacters.slice(0, 20);
-          //     return trimmedCharacters;
-          // });
+    const handleOfflineStatus = () => {
+      setIsOnline(false);
+      if (isOnline !== false) {
+        message.loading({
+          content: reconnectingMessageContent,
+          key: reconnectingMessageKey,
+          duration: 0,
+        });
+        reconnectingTimeout = setTimeout(() => {
+          message.destroy(reconnectingMessageKey);
+        }, 30 * 60 * 1000); // 30 minutes
+      }
+    };
 
-          setCharacters((prev: any) => {
-            let i = 0;
-              data?.data.forEach((a:any) => { 
-                prev.forEach((b:any) => {
-                  if(a.id === b.id){
-                    console.log(a.id);
-                    i++;
-                    const index = prev.findIndex((object: any) => object.id === a.id);
-                    if (index !== -1) {
-                      prev.splice(index, 1);
-                    }
-                    // return [...data?.data, ...prev.slice(0, prev.length - data?.data.length)]
-                  }
-                })
-              })
-              if(data?.data.length > 0){
-                const j = data?.data.length - i;
-                const indexdata = [...data?.data, ...prev.slice(0, prev.length - j)];
-                return indexdata;
-              }else{
-                const indexdata = [...data?.data, ...prev];
-                return indexdata;
-              }
-            // }
-          });
-        } catch (error) {
-          console.error(error);
-        }
-        
-      };
-      fetchNewData();
-    }, 5000);
+    window.addEventListener("online", handleOnlineStatus);
+    window.addEventListener("offline", handleOfflineStatus);
+
     return () => {
-      clearInterval(intervalId);
-    };}
-  }, [status, id]);
+      window.removeEventListener("online", handleOnlineStatus);
+      window.removeEventListener("offline", handleOfflineStatus);
+      if (reconnectingTimeout) {
+        clearTimeout(reconnectingTimeout);
+      }
+    };
+  }, [isOnline]);
+
+  let taskSocket: WebSocket;
+  useEffect(() => {
+    const connect = async () => {
+      try {
+        if (!taskSocket || taskSocket.readyState === WebSocket.CLOSED) {
+          taskSocket = new WebSocket(
+            `ws://10.10.10.45:8000/tasks/?token=${token}`
+          );
+          // taskSocket = new WebSocket(
+          //   `wss://api.tteld.co/tasks/?token=${token}`
+          // );
+
+          taskSocket.addEventListener("open", (event) => {
+            console.log("open");
+          });
+          taskSocket.addEventListener("message", (event) => {
+            const newData = JSON.parse(event.data);
+            setCharacters((prev: any) => {
+              if (prev?.length >= 15) {
+                prev?.pop();
+              }
+              console.log(prev);
+
+              if (newData.type === "task_create") {
+                return [newData.task, ...prev];
+              } else if (newData.type === "task_update") {
+                if (isSuper === "true") {
+                  const updatedData = prev.filter(
+                    (b: any) => b.id !== newData.task.id
+                  );
+                  const data = [newData.task, ...updatedData];
+                  data.sort((a: any, b: any) => {
+                    if (a.status === "New" && b.status === "New") {
+                      return 0;
+                    }
+                    if (a.status === "New") {
+                      return -1;
+                    }
+                    if (b.status === "New") {
+                      return 1;
+                    }
+                    return 0;
+                  });
+                  return data;
+                } else {
+                  const data = prev.map((b: any) =>
+                    b.id === newData.task.id ? newData.task : b
+                  );
+                  return data;
+                }
+              } else if (newData.type === "task_delete") {
+                const data = prev.filter((b: any) => b.id !== newData.task.id);
+                return data;
+              }
+              return prev;
+            });
+          });
+          taskSocket.addEventListener("error", (errorEvent) => {
+            console.error("WebSocket error:", errorEvent);
+          });
+
+          taskSocket.addEventListener("close", (event) => {
+            console.log("close");
+          });
+        }
+      } catch (err) {}
+    };
+    isOnline === true && connect();
+  }, [isOnline]);
+
+  const teamData = useTeamData("");
+  const teamOptions: { label: string; value: any }[] | undefined =
+    teamData?.data?.data.map((item: { name: string; id: string }) => ({
+      label: item?.name,
+      value: item?.id,
+    }));
+
+  const { data, isLoading, refetch } = useTasks({
+    company,
+    customer,
+    user,
+    status,
+    team,
+    page,
+  });
+  useEffect(() => {
+    if (data) {
+      setCharacters(data?.data);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [company, customer, user, status, team]);
 
   const showModal = () => {
     setOpen(true);
   };
-  const [length, setLength] = useState<any>();
-  useEffect(() => {
-    setLength(characters)
-  }, [characters])
 
+  const Next = () => {
+    const a = Number(page) + 1;
+    setPage(a);
+  };
+  const Previos = () => {
+    Number(page);
+    if (page > 1) {
+      const a = Number(page) - 1;
+      setPage(a);
+    }
+  };
   return (
     <div>
       <span
@@ -173,41 +181,59 @@ const Task = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          marginBottom: 8,
         }}
       >
         {open && <AddTask open={open} setOpen={setOpen} />}
-        {/* <SearchOptions
-          SearchResult={(query: string) => SearchResultForTaskCustomer(query)}
-          onSelect={(value: any, { valId }: { valId: string }) => {
-            setId(valId === undefined ? "" : valId);
-            if (valId) {
-              setSkip(1);
-            }
-          }}
-          placeholder="Company"
-        /> */}
-        <div className="search">
+        <div
+          className="search"
+          style={{ display: "flex", width: "100%", marginRight: 15 }}
+        >
           <Search
+            style={{ marginRight: 10, width: "18%" }}
             type="text"
-            placeholder="Search by Customer"
-            onChange={event => setId(event.target.value)}
-            value={id}
+            placeholder="Search by Company"
+            onChange={(event) => setCompany(event.target.value)}
+            value={company}
             allowClear
           />
-        </div>
-        <div className="status">
+          <Search
+            style={{ marginRight: 10, width: "18%" }}
+            type="text"
+            placeholder="Search by Customer"
+            onChange={(event) => {
+              setCustomer(event.target.value);
+            }}
+            value={customer}
+            allowClear
+          />
+          <Search
+            style={{ width: "18%" }}
+            type="text"
+            placeholder="Search by User"
+            onChange={(event) => setUser(event.target.value)}
+            value={user}
+            allowClear
+          />
           <Select
-            style={{ width: 120, marginLeft: 15 }}
-            placeholder='status'
+            style={{ width: "20%", marginLeft: 10 }}
+            placeholder="status"
             onChange={(value: any) => setStatus(value)}
+            mode="multiple"
           >
-            <Option value="all">all</Option>
             <Option value="New">New</Option>
             <Option value="Checking">Checking</Option>
             <Option value="Done">Done</Option>
-            <Option value="Do PTI">Do PTI</Option>
-            <Option value="No need PTI">No need PTI</Option>
           </Select>
+          {isSuper === "true" && (
+            <Select
+              mode="multiple"
+              style={{ width: "20%", marginLeft: 10 }}
+              placeholder="team"
+              onChange={(value: any) => setTeam(value)}
+              options={teamOptions}
+            />
+          )}
         </div>
         <Button
           type="primary"
@@ -219,11 +245,35 @@ const Task = () => {
           Add Task
         </Button>
       </span>
-
       <TaskTable
-        data={{ data: characters }}
-        onChange={onChange}
+        data={{ data: characters, page_size: 15 }}
+        isLoading={isLoading}
+        refetch={refetch}
       />
+      <Space style={{ width: "100%", marginTop: 10 }} direction="vertical">
+        <Space style={{ width: "100%", justifyContent: "flex-end" }} wrap>
+          <Button
+            type="primary"
+            icon={<StepBackwardOutlined />}
+            onClick={Previos}
+          ></Button>
+          <Input
+            style={{ width: 50, textAlign: "right" }}
+            value={page}
+            onChange={(e) => {
+              let num = e.target.value;
+              if(Number(num) && num !== '0'){
+                setPage(num);
+              }
+            }}
+          />
+          <Button
+            type="primary"
+            icon={<StepForwardOutlined />}
+            onClick={Next}
+          ></Button>
+        </Space>
+      </Space>
     </div>
   );
 };

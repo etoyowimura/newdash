@@ -69,11 +69,4 @@ export const teamController = {
     }
     return { data: res, error };
   },
-  async teamFinderId(team_id: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `team/${team_id}`
-    );
-    return data;
-  },
-
 };

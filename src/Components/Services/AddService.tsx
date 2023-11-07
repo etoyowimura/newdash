@@ -33,7 +33,7 @@ const AddService = ({
               setOpen(!open);
               refetch();
             })
-            .catch((info) => {
+            .catch(() => {
               refetch();
             });
         }}

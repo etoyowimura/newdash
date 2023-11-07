@@ -19,6 +19,3 @@ export const useServiceOne = (
   );
 };
 
-export const useFindService = async (query: any) => {
-  return await serviceController.serviceFinderId(query);
-};

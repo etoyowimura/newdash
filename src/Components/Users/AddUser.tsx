@@ -1,19 +1,18 @@
 import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
 import { userController } from "../../API/LayoutApi/users";
 import { useTeamData } from "../../Hooks/Teams";
-import { useState } from "react";
-import { InfoCircleOutlined } from '@ant-design/icons';
-// import '../../App.css'
-
+import { useEffect, useState } from "react";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { message } from "antd";
+import axios from "axios";
+import instance from "../../API/api";
 
 const AddUser = ({
   open,
   setOpen,
-  refetch,
 }: {
   open: boolean;
   setOpen(open: boolean): void;
-  refetch(): void;
 }) => {
   const [form] = FormAnt.useForm();
   const [showInfo, setShowInfo] = useState(true);
@@ -23,12 +22,31 @@ const AddUser = ({
   const [teamId, setTeamId] = useState<any>();
   const TeamData = useTeamData(teamId);
   const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
+    TeamData?.data?.data?.map((item: { name: string; id: string }) => ({
+      label: item?.name,
+      value: item?.id,
+    }));
+
+  const [roleId, setRoleId] = useState<any>();
+  const [roles, setRoles] = useState<any>([]);
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await instance("/users/roles/");
+        setRoles(response.data);
+      } catch (error) {
+        console.error("Произошла ошибка при загрузке данных:", error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+  
+  const RoleOption: { label: string; value: any }[] | undefined =
+    roles?.map((item: { name: string; id: string }) => ({
+      label: item?.name,
+      value: item?.id,
+    }));
   return (
     <div>
       <Modal
@@ -38,20 +56,23 @@ const AddUser = ({
         cancelText="Cancel"
         onCancel={handleCancel}
         onOk={() => {
-          form
-            .validateFields()
-            .then(async (values) => {
-              form.resetFields();
-              await userController.addUserController(values);
-              setOpen(!open);
-              refetch();
-            })
-            .catch((info) => {
-              refetch();
+          form.validateFields().then(async (values) => {
+            if (typeof values.groups === 'number') {
+              values.groups = [values.groups];
+            }
+            form.resetFields();
+            await userController.addUserController(values).then((data: any) => {
+              const formattedPassword = data.data.password;
+              if (formattedPassword) {
+                for (var i = 0; i < formattedPassword.length; i++) {
+                  message.error({ content: formattedPassword[i] });
+                }
+              }
             });
+            setOpen(!open);
+          });
         }}
       >
-
         <FormAnt
           form={form}
           layout="horizontal"
@@ -61,57 +82,85 @@ const AddUser = ({
           <FormAnt.Item
             label="Username"
             name="username"
-            rules={[
-              { required: true, message: "Username is required!" },
-            ]}
+            rules={[{ required: true, message: "Username is required!" }]}
           >
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-             label="Password"
-             name="password"
-             rules={[
-               { required: true, message: "password is required!" },
-             ]}
-           >
-             <div className="input-container" style={{ width: '100%' }}>
-               <Input
-                 type="password"
-                 addonAfter={
-                   <span
-                     className="info-icon-container"
-                     onMouseEnter={() => setShowInfo(true)}
-                     onMouseLeave={() => setShowInfo(true)}
-                   >
-                     <InfoCircleOutlined className="info-icon" style={{ color: 'blue' }} />
-                   </span>
-                 }
-               />
-             </div>
-             {showInfo && (
-               <ul className="info-container" style={{position: "absolute", top: -4 ,padding: 20, width: 300, background: '#fff', marginLeft: 420, borderRadius: 10}}>
-                  <li style={{fontSize: 11, fontStyle: "italic", fontWeight: 300, listStyle: ''}}>Your password can’t be too similar to your other personal information</li>
-                  <li style={{fontSize: 11, fontStyle: "italic", fontWeight: 300}}>Your password must contain at least 8 characters.</li>
-                  <li style={{fontSize:11, fontStyle: "italic", fontWeight: 300}}>Your password can’t be a commonly used password.</li>
-                  <li style={{fontSize: 11, fontStyle: "italic", fontWeight: 300}}>Your password can’t be entirely numeric.</li>
-               </ul>
-             )}
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "password is required!" }]}
+          >
+            <div className="input-container" style={{ width: "100%" }}>
+              <Input
+                type="password"
+                addonAfter={
+                  <span
+                    className="info-icon-container"
+                    onMouseEnter={() => setShowInfo(true)}
+                    onMouseLeave={() => setShowInfo(true)}
+                  >
+                    <InfoCircleOutlined
+                      className="info-icon"
+                      style={{ color: "blue" }}
+                    />
+                  </span>
+                }
+              />
+            </div>
+            {showInfo && (
+              <ul
+                className="info-container"
+                style={{
+                  position: "absolute",
+                  top: -4,
+                  padding: 20,
+                  width: 300,
+                  background: "#fff",
+                  marginLeft: 420,
+                  borderRadius: 10,
+                }}
+              >
+                <li
+                  style={{
+                    fontSize: 11,
+                    fontStyle: "italic",
+                    fontWeight: 300,
+                    listStyle: "",
+                  }}
+                >
+                  Your password can’t be too similar to your other personal
+                  information
+                </li>
+                <li
+                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
+                >
+                  Your password must contain at least 8 characters.
+                </li>
+                <li
+                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
+                >
+                  Your password can’t be a commonly used password.
+                </li>
+                <li
+                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
+                >
+                  Your password can’t be entirely numeric.
+                </li>
+              </ul>
+            )}
           </FormAnt.Item>
           <FormAnt.Item
-             label="Password Confirmation"
-             name="password"
-             rules={[
-               { required: true, message: "password is required!" },
-             ]}
-           >
-               <Input type="password"/>
+            label="Password Confirmation"
+            name="password"
+            rules={[{ required: true, message: "password is required!" }]}
+          >
+            <Input type="password" />
           </FormAnt.Item>
           <FormAnt.Item
             label="Team"
             name="team_id"
-            rules={[
-              { required: false },
-            ]}
+            rules={[{ required: false }]}
           >
             <Select
               onChange={(value: any) => setTeamId(value)}
@@ -119,33 +168,25 @@ const AddUser = ({
             />
           </FormAnt.Item>
           <FormAnt.Item
-            label="First name"
-            name="first_name"
-            rules={[
-              { required: false },
-            ]}
+            label="Role"
+            name="groups"
+            rules={[{ required: true }]}
           >
-            <Input />
+            <Select
+              onChange={(value: any) => setRoleId(value)}
+              options={RoleOption}
+            />
           </FormAnt.Item>
           <FormAnt.Item
-            label="Last name"
-            name="last_name"
-            rules={[
-              { required: false },
-            ]}
-          >
-            <Input />
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="Is Staff"
-            name="is_staff"
+            label="Is Active"
+            name="is_active"
             rules={[{ required: false }]}
           >
             <Switch defaultChecked={true} />
           </FormAnt.Item>
         </FormAnt>
       </Modal>
-    </div >
+    </div>
   );
 };
 

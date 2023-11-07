@@ -1,12 +1,9 @@
-import { Input, Modal, Form as FormAnt, Select, Button, Upload } from "antd";
+import { Input, Modal, Form as FormAnt, Select, Upload, Switch } from "antd";
 import { taskController } from "../../API/LayoutApi/tasks";
 import { useEffect, useState } from "react";
-import { useCompanyData } from "../../Hooks/Companies";
 import { useServiceData } from "../../Hooks/Services";
 import { customerController } from "../../API/LayoutApi/customers";
-import { UploadOutlined, SearchOutlined } from '@ant-design/icons';
-import { companyController } from "../../API/LayoutApi/companies";
-import { teamController } from "../../API/LayoutApi/teams";
+import { UploadOutlined } from "@ant-design/icons";
 import { useTeamData } from "../../Hooks/Teams";
 import instance from "../../API/api";
 const { Option } = Select;
@@ -23,26 +20,21 @@ const AddTask = ({
     setOpen(!open);
   };
   const [fileIds, setFileIds] = useState([]);
-  const [companyName, setCompanyName] = useState<string>('');
-  const [customerName, setCustomerName] = useState<any>('');
-  const [serviceId, setServiceId] = useState<any>();
-  const [teamId, setTeamId] = useState<any>(undefined);
-  const [characters, setCharacters] = useState<any>([])
-  const [customerData, setCustomerData] = useState<any>([])
-  const ServiceData = useServiceData('');
-  const TeamData = useTeamData('')
+  const [companyName, setCompanyName] = useState<string>("");
+  const [customerName, setCustomerName] = useState<any>("");
+  const [characters, setCharacters] = useState<any>([]);
+  const [customerData, setCustomerData] = useState<any>([]);
+  const ServiceData = useServiceData("");
+  const TeamData = useTeamData("");
   const [companyId, setCompanyId] = useState<any>();
   const [options, setOptions] = useState<any>();
   const [cusOptions, setCusOptions] = useState<any>();
-  const [teamName, setTeamName] = useState<any>()
 
   const ServiceOption: { label: string; value: any }[] | undefined =
-    ServiceData?.data?.data?.map(
-      (item: { title: string; id: string }) => ({
-        label: item?.title,
-        value: item?.id
-      })
-    )
+    ServiceData?.data?.data?.map((item: { title: string; id: string }) => ({
+      label: item?.title,
+      value: item?.id,
+    }));
   // ---------------------------------------------
 
   type Data = {
@@ -58,24 +50,22 @@ const AddTask = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data }: Data = await instance(`companies/?name=${companyName}`)
-        setCharacters(data)
+        const { data }: Data = await instance(`companies/?name=${companyName}`);
+        setCharacters(data);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
-    fetchData()
-  }, [companyName])
+    };
+    fetchData();
+  }, [companyName]);
   useEffect(() => {
     const CompanyOption: { label: string; value: any }[] | undefined =
-      characters?.map(
-        (item: { name: string; id: string }) => ({
-          label: item?.name,
-          value: item?.id,
-        })
-      );
-    setOptions(CompanyOption)
-  }, [characters])
+      characters?.map((item: { name: string; id: string }) => ({
+        label: item?.name,
+        value: item?.id,
+      }));
+    setOptions(CompanyOption);
+  }, [characters]);
   // const [teamOptions, setTeamOptions] = useState<any>();
   // useEffect(() => {
   //   if (companyId) {
@@ -100,48 +90,86 @@ const AddTask = ({
 
   useEffect(() => {
     if (companyId !== undefined) {
-      customerController.customerByCompany(companyId, customerName).then(data => {
-        setCustomerData(data)
-      })
+      customerController
+        .customerByCompany(companyId, customerName)
+        .then((data) => {
+          setCustomerData(data);
+        });
     }
-  }, [companyId])
+  }, [companyId]);
 
   useEffect(() => {
     if (companyId !== undefined) {
       const fetchData = async () => {
         try {
-          const { data }: Data = await instance(`customers-by-company/${companyId}/?name=${customerName}`)
-          setCustomerData(data)
+          const { data }: Data = await instance(
+            `customers-by-company/${companyId}/?name=${customerName}`
+          );
+          setCustomerData(data);
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
-      }
-      fetchData()
+      };
+      fetchData();
     }
-  }, [customerName])
+  }, [customerName]);
 
   useEffect(() => {
     const CustomerOption: { label: string; value: any }[] | undefined =
-      customerData?.map(
-        (item: { name: string; id: string }) => ({
-          label: item?.name,
-          value: item?.id
-        })
-      )
-    setCusOptions(CustomerOption)
-  }, [customerData])
-
+      customerData?.map((item: { name: string; id: string }) => ({
+        label: item?.name,
+        value: item?.id,
+      }));
+    setCusOptions(CustomerOption);
+  }, [customerData]);
 
   const teamOptions: { label: string; value: any }[] | undefined =
-      TeamData?.data?.data.map(
-        (item: { name: string; id: string }) => ({
-          label: item?.name,
-          value: item?.id
-        })
-      )
+    TeamData?.data?.data.map((item: { name: string; id: string }) => ({
+      label: item?.name,
+      value: item?.id,
+    }));
 
+
+const [previewImage, setPreviewImage] = useState<string | null>(null); // Состояние для предварительного просмотра
+
+function handlePaste(event: any) {
+  const clipboardData = event.clipboardData || window.Clipboard;
+  if (clipboardData && clipboardData.items.length > 0) {
+    const clipboardItem = clipboardData.items[0];
+    if (clipboardItem.kind === "file") {
+      const file = clipboardItem.getAsFile();
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Предварительный просмотр изображения
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target && e.target.result) {
+          setPreviewImage(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+      taskController
+        .addTaskFile(formData)
+        .then((response) => {
+          const fileId = response.id;
+          const n = [response.file];
+          setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
+          const updatedValues = form.getFieldsValue();
+          updatedValues.attachment_ids = [
+            ...updatedValues.attachment_ids,
+            fileId,
+          ];
+          form.setFieldsValue(updatedValues);
+        })
+        .catch((error) => {
+          // Обработка ошибки при вставке из буфера обмена
+        });
+    }
+  }
+}
   return (
-    <div>
+    <div onPaste={(event) => handlePaste(event)}>
       <Modal
         open={open}
         title="Add task"
@@ -149,15 +177,13 @@ const AddTask = ({
         cancelText="Cancel"
         onCancel={handleCancel}
         onOk={() => {
-          form
-            .validateFields()
-            .then(async (values) => {
-              const updatedValues = { ...values };
-              updatedValues.attachment_ids = fileIds;
-              form.resetFields();
-              await taskController.addTaskController(updatedValues);
-              setOpen(!open);
-            })
+          form.validateFields().then(async (values) => {
+            const updatedValues = { ...values };
+            updatedValues.attachment_ids = fileIds;
+            form.resetFields();
+            await taskController.addTaskController(updatedValues);
+            setOpen(!open);
+          });
         }}
       >
         <FormAnt
@@ -169,9 +195,7 @@ const AddTask = ({
           <FormAnt.Item
             label="Company"
             name="company_id"
-            rules={[
-              { required: false, message: "Please input company!" },
-            ]}
+            rules={[{ required: false, message: "Please input company!" }]}
           >
             <Select
               showSearch
@@ -206,24 +230,10 @@ const AddTask = ({
           <FormAnt.Item
             label="Service"
             name="service_id"
-            rules={[
-              { required: true, message: "Please select service!" },
-            ]}
+            rules={[{ required: true, message: "Please select service!" }]}
           >
-            <Select
-              onChange={(value: any) => setServiceId(value)}
-              options={ServiceOption}
-            />
+            <Select options={ServiceOption} />
           </FormAnt.Item>
-          {/* <FormAnt.Item
-            label="Assigned to"
-            name="assigned_to_id"
-            rules={[
-              { required: true, message: "Please select one of the teams!" },
-            ]}
-          >
-            <Select options={teamOptions}/>
-          </FormAnt.Item> */}
           <FormAnt.Item
             label="Assigned to"
             name="assigned_to_id"
@@ -231,7 +241,7 @@ const AddTask = ({
               { required: true, message: "Please select one of the teams!" },
             ]}
           >
-            <Select options={teamOptions}/>
+            <Select options={teamOptions} />
           </FormAnt.Item>
           <FormAnt.Item
             label="Note"
@@ -253,40 +263,60 @@ const AddTask = ({
               <Option value="New">New</Option>
               <Option value="Checking">Checking</Option>
               <Option value="Done">Done</Option>
-              <Option value="Do PTI">Do PTI</Option>
-              <Option value="No need PTI">No need PTI</Option>
             </Select>
+          </FormAnt.Item>
+          <FormAnt.Item
+            label="PTI"
+            name="pti"
+            rules={[
+              { required: false, message: "Please input service points!" },
+            ]}
+          >
+            <Switch />
           </FormAnt.Item>
         </FormAnt>
         <FormAnt>
-          <FormAnt.Item
-            label="File"
-            name="attachment"
-          >
-            <Upload.Dragger
-              name="file"
-              customRequest={({ file, onSuccess }: any) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                taskController.addTaskFile(formData)
-                  .then((response) => {
-                    const fileId = response.id;
-                    setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
-                    onSuccess();
-                    const updatedValues = form.getFieldsValue();
-                    updatedValues.attachment_ids = [...updatedValues.attachment_ids, fileId];
-                    form.setFieldsValue(updatedValues);
-                  })
-                  .catch((error) => {
-                    onSuccess(error);
-                  });
-              }}
-            >
-              <p className="ant-upload-drag-icon">
-                <UploadOutlined />
-              </p>
-              <p className="ant-upload-text">Click or drag file to this area to upload</p>
-            </Upload.Dragger>
+          <FormAnt.Item label="File" name="attachment">
+            <div >
+              <Upload.Dragger
+                name="file"
+                multiple={true}
+                onDrop={(event) => {
+                  const data = event.dataTransfer.getData('File')
+                }}
+                customRequest={({ file, onSuccess }: any) => {
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  taskController
+                    .addTaskFile(formData)
+                    .then((response) => {
+                      const fileId = response.id;
+                      setFileIds((prevFileIds): any => [
+                        ...prevFileIds,
+                        fileId,
+                      ]);
+                      onSuccess();
+                      const updatedValues = form.getFieldsValue();
+                      updatedValues.attachment_ids = [
+                        ...updatedValues.attachment_ids,
+                        fileId,
+                      ];
+                      form.setFieldsValue(updatedValues);
+                    })
+                    .catch((error) => {
+                      onSuccess(error);
+                    });
+                }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <UploadOutlined style={{ color: "#36cfc9" }} />
+                </p>
+                <p className="ant-upload-text" style={{ color: "#36cfc9" }}>
+                  Click or drag a file here to upload
+                </p>
+              </Upload.Dragger>
+             {previewImage && <img src={previewImage} alt="Предварительный просмотр"style={{width: 200, height:200}} />}
+            </div>
           </FormAnt.Item>
         </FormAnt>
       </Modal>

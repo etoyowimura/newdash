@@ -15,7 +15,7 @@ export const serviceController = {
   },
 
   async serviceOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`service/${Id}`);
+    const { data }: { data: any } = await instance(`service/${Id}/`);
     return data;
   },
 
@@ -55,7 +55,7 @@ export const serviceController = {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`service/${service_id}`, {
+      const { data } = await instance(`service/${service_id}/`, {
         method: "DELETE",
       }).then((u) => {
         setTimeout(() => {
@@ -69,11 +69,4 @@ export const serviceController = {
     }
     return { data: res, error };
   },
-  async serviceFinderId(service_id: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `service/${service_id}`
-    );
-    return data;
-  },
-
 };

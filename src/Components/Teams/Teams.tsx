@@ -2,10 +2,6 @@ import { useState } from "react";
 import { useTeamData } from "../../Hooks/Teams";
 import AddTeam from "./AddTeam";
 import { Button } from "antd";
-import SearchOptions from "../../Utils/SearchOptions";
-import {
-  SearchResultForTeam,
-} from "../../Utils/SearchResults";
 import TeamTable from "./TeamTable";
 
 type Data = {
@@ -18,13 +14,9 @@ type Data = {
   isFetching?: boolean;
 };
 const Team = () => {
-  const [skip, setSkip] = useState(0);
-  const [id, setId] = useState<string>("");
-  const { data, isLoading, refetch, isFetching }: Data = useTeamData(id);
+  const { data, isLoading, refetch, isFetching }: Data = useTeamData('');
   const [open, setOpen] = useState(false);
-  const onChange = (query: any) => {
-    setSkip(10 * (parseInt(query.current) - 1));
-  };
+ 
   const showModal = () => {
     setOpen(true);
   };
@@ -35,6 +27,7 @@ const Team = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          marginBottom: 6
         }}
       >
         {open && <AddTeam refetch={refetch} open={open} setOpen={setOpen} />}
@@ -51,10 +44,8 @@ const Team = () => {
 
       <TeamTable
         data={data?.data}
-        onChange={onChange}
         isLoading={isLoading}
         isFetching={isFetching}
-        refetch={refetch}
       />
     </div>
   );

@@ -16,21 +16,15 @@ import {
 import { teamController } from "../../API/LayoutApi/teams";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-
+const isSuper = localStorage.getItem("isSuperUser");
 const TabPane = Tabs.TabPane;
 
-// type Data = {
-//     data?: {
-//         data: Array<any>,
-//         count: number
-//     }
-// }
 type params = {
   readonly id: any;
 };
 
 type MyObjectType = {
-  [key: string | number]: any; // Индексная подпись с параметром типа 'string'
+  [key: string | number]: any;
 };
 const TeamEdit = () => {
   const { id } = useParams<params>();
@@ -40,7 +34,18 @@ const TeamEdit = () => {
   const onSubmit = async (value: any) => {
     await teamController.teamPatch(value, id);
     refetch();
-    navigate(-1);
+    document.location.replace('/#/teams/')
+  };
+
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm(
+      "Вы уверены, что хотите удалить эту команду?"
+    );
+    if (shouldDelete && id !== undefined) {
+      teamController.deleteTeamController(id).then((data: any) => {
+        document.location.replace(`/#/teams`);
+      });
+    }
   };
   
   return (
@@ -83,23 +88,24 @@ const TeamEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="name"
+                              label="Name"
                               name="name"
                             >
                               <Input />
                             </Form.Item>
                           </Col>
-                          <Col span={6}>
-                            <Form.Item
-                              wrapperCol={{ span: "100%" }}
-                              label="Is Active"
-                              name="is_active"
-                            >
-                              <Switch defaultChecked={data?.is_active} />
-                            </Form.Item>
-                          </Col>
                         </Row>
                         <Form.Item>
+                        {isSuper === "true" && (
+                            <Button
+                              onClick={() => ClickDelete()}
+                              type="primary"
+                              style={{marginRight: 10}}
+                              danger
+                            >
+                              Delete
+                            </Button>
+                          )}
                           <Button type="primary" htmlType="submit">
                             Submit
                           </Button>

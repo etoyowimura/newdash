@@ -1,10 +1,9 @@
 import instance from "../api";
 import { message } from "antd";
-
 export const userController = {
   async read(id:string) {
     const { data }: { data: object } = await instance(
-      `users/admins`
+      `users/admins/`
     );
     const getCount = async () => {
       return 0;
@@ -15,7 +14,7 @@ export const userController = {
   },
 
   async userOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`users/admin/${Id}`);
+    const { data }: { data: any } = await instance(`users/admin/${Id}/`);
     return data;
   },
 
@@ -34,35 +33,27 @@ export const userController = {
     return data;
   },
 
-  async addUserController(userId: any) {
+  async addUserController(userId:any) {
     message.loading({ content: "Loading...", key: userId });
-    let res;
     let error = '';
-    try{
-      const { data } = await instance("users/admin/", {
-      method: "POST",
-      data: {
-        ...userId,
-      },
-    }).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Loaded!", key: userId, duration: 2 });
-      }, 1000);
-      return u;
-    });
-    res = data;
-    } catch (err){
-      error = 'username is already exists'
+    let responseData = null;
+    try {
+      const response = await instance.post("users/admin/", userId);
+      responseData = response;
+      message.success({ content: "Loaded!", key: userId, duration: 2 });
+    } catch (err: any) {
+      responseData = err?.response?.data
     }
-      return { data: res, error };
+    return { data: responseData };
   },
+
 
   async deleteUserController(user_id: string) {
     message.loading({ content: "Loading...", key: user_id });
     let res;
     let error = "";
     try {
-      const { data } = await instance(`users/admin/${user_id}`, {
+      const { data } = await instance(`users/admin/${user_id}/`, {
         method: "DELETE",
       }).then((u) => {
         setTimeout(() => {
@@ -76,11 +67,4 @@ export const userController = {
     }
     return { data: res, error };
   },
-  async userFinderId(user_id: string) {
-    const { data }: { data: Array<any> } = await instance(
-      `user/admin/${user_id}`
-    );
-    return data;
-  },
-
 };

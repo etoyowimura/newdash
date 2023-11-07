@@ -1,6 +1,6 @@
 import { MenuProps } from "antd";
 import { Link } from "react-router-dom";
-import { BankOutlined, UserOutlined, CustomerServiceOutlined, FileDoneOutlined, TeamOutlined, BarChartOutlined, AuditOutlined, MehOutlined, ProfileOutlined } from '@ant-design/icons';
+import { BankOutlined, DownSquareOutlined, CustomerServiceOutlined, FileDoneOutlined, TeamOutlined, BarChartOutlined, AuditOutlined, MehOutlined } from '@ant-design/icons';
 import Company from "../Components/Companies/Companies";
 import CompanyEdit from '../Components/Companies/CompaniesEdit';
 import Customer from "../Components/Customers/Customers";
@@ -16,6 +16,8 @@ import UserEdit from "../Components/Users/UserEdit";
 import MenuItem from "antd/es/menu/MenuItem";
 import Stat from "../Components/Statistics/Statistic";
 import Profile from "../Components/Profile/Profile";
+import Update from "../Components/Updates/Update";
+import UpdateEdit from "../Components/Updates/UpdateEdit";
 
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -44,14 +46,12 @@ export const allMenu: MenuItem[] = [
 
 if (isSuperUser !== 'false') {
   allMenu.push(getItem(<Link to="teams/">Teams</Link>, "teams/", <TeamOutlined />),
+  getItem(<Link to="stats/">Statistics</Link>, "stats/", <BarChartOutlined />),
   getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />),
-  getItem(<Link to="stats/">Statistics</Link>, "stats/", <BarChartOutlined />))
+  getItem(<Link to="updates/">Updates</Link>, "updates/", <DownSquareOutlined />)
+  )
 }
 
-
-allMenu.push(
-  getItem(<Link to="profile/">Profile</Link>, "profile/", <UserOutlined />), 
-)
 
 export const items: Array<any> = [
   {
@@ -124,5 +124,15 @@ export const items: Array<any> = [
     path: "/profile/",
     component: <Profile />,
     key: "/profile/",
+  },
+  isSuperUser !== 'false' && {
+    path: "/updates/",
+    component: <Update />,
+    key: "/updates/",
+  },
+  {
+    path: "/updates/:id/",
+    component: <UpdateEdit />,
+    key: "/updates/:id/",
   },
 ];

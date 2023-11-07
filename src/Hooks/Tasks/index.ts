@@ -1,12 +1,20 @@
 import { useQuery } from "react-query";
-import { taskController } from "../../API/LayoutApi/tasks";
+import { TTasksGetParams, taskController } from "../../API/LayoutApi/tasks";
 
-export const useTaskData = (id: string): object => {
-  return useQuery(
-    [`tasks/${id}`, id],
-    () => taskController.read(id),
-    { refetchOnWindowFocus: false }
-  );
+
+export const useTasks = ({company, customer, user, status, team, page}:TTasksGetParams) => {
+  return useQuery({
+    queryKey: ["tasks", company, customer, user, status, team, page],
+    queryFn: () =>
+      taskController.read({
+        company,
+        customer,
+        user,
+        status,
+        team,
+        page,
+      }),
+  });
 };
 
 export const useTaskOne = (
@@ -17,12 +25,4 @@ export const useTaskOne = (
     () => taskController.taskOne(taskId),
     { refetchOnWindowFocus: false }
   );
-};
-
-// export const useFindTaskCompany = async (query: any) => {
-//   return await taskController.taskFinderByCompany(query);
-// };
-
-export const useFindTaskCustomer = async (query: any) => {
-  return await taskController.taskFinderByCustomer(query);
 };

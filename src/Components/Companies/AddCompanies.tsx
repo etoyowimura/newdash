@@ -1,8 +1,7 @@
 import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
 import { companyController } from "../../API/LayoutApi/companies";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTeamData } from "../../Hooks/Teams";
-import { teamController } from "../../API/LayoutApi/teams";
 
 const AddCompany = ({
   open,
@@ -40,6 +39,7 @@ const AddCompany = ({
               form.resetFields();
               await companyController.addCompanyController(values);
               setOpen(!open);
+              window.location.reload();
             })
         }}
       >
@@ -85,6 +85,20 @@ const AddCompany = ({
             rules={[{ required: false, message: "Please input company status!" }]}
           >
             <Switch defaultChecked={true} />
+          </FormAnt.Item>
+          <FormAnt.Item
+            label="USDOT"
+            name="usdot"
+            rules={[{ required: false, message: "Please input company status!" }]}
+          >
+            <Input />
+          </FormAnt.Item>
+          <FormAnt.Item
+            label="API Key"
+            name="api_key"
+            rules={[{ required: false, message: "Please input company status!" }]}
+          >
+            <Input />
           </FormAnt.Item>
         </FormAnt>
       </Modal>

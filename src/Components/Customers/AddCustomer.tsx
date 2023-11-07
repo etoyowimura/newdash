@@ -1,6 +1,5 @@
 import { Input, Modal, Form as FormAnt, Select } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
-import { useCompanyData } from "../../Hooks/Companies";
 import { useEffect, useState } from "react";
 import instance from "../../API/api";
 
@@ -27,7 +26,6 @@ const AddCustomer = ({
   };
   const [companyName, setCompanyName] = useState<string>('');
   const [options, setOptions] = useState<any>();
-  const [companyId, setCompanyId] = useState<any>();
   const [characters, setCharacters] = useState<any>([])
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +63,7 @@ const AddCustomer = ({
               form.resetFields();
               await customerController.addCustomerController(values);
               setOpen(!open);
+              window.location.reload();
             })
         }}
       >
@@ -108,7 +107,6 @@ const AddCustomer = ({
               filterOption={false}
               autoClearSearchValue={false}
               allowClear
-              onChange={(value: any) => setCompanyId(value)}
             />
           </FormAnt.Item>
         </FormAnt>

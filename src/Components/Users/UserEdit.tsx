@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useUserOne } from "../../Hooks/Users";
 import {
   Form,
@@ -18,21 +17,16 @@ import { userController } from "../../API/LayoutApi/users";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
-
+import { useEffect, useState } from "react";
+import instance from "../../API/api";
+import axios from "axios";
+const isSuper = localStorage.getItem("isSuperUser");
 const TabPane = Tabs.TabPane;
-
-// type Data = {
-//     data?: {
-//         data: Array<any>,
-//         count: number
-//     }
-// }
 type params = {
   readonly id: any;
 };
-
 type MyObjectType = {
-  [key: string | number]: any; // Индексная подпись с параметром типа 'string'
+  [key: string | number]: any;
 };
 const UserEdit = () => {
   const { id } = useParams<params>();
@@ -41,20 +35,53 @@ const UserEdit = () => {
   let navigate = useNavigate();
 
   const onSubmit = async (value: any) => {
+    // if ((value.team_id === null && value.team_id !== '') || (value.team_id === undefined && value.team_id !== '')) {
+    //   delete value.team_id;
+    // }
     await userController.userPatch(value, id);
     refetch();
-    navigate(-1);
+    document.location.replace("/#/users/");
   };
+  const [teamValue, setTeamValue] = useState<any>();
+  const TeamData = useTeamData("");
+  const noTeamOption = { label: " - - - - - -", value: "" };
+  const TeamOption: { label: string; value: any }[] | undefined = (
+    TeamData?.data?.data || []
+  ).map((item: { name: string; id: string }) => ({
+    label: item?.name,
+    value: item?.id,
+  }));
+  if (TeamOption) {
+    TeamOption.unshift(noTeamOption);
+  }
+  const [roles, setRoles] = useState<any>([]);
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await instance("users/roles/");
+        setRoles(response.data);
+      } catch (error) {
+        console.error("Произошла ошибка при загрузке данных:", error);
+      }
+    };
 
-  const [teamId, setTeamId] = useState<any>();
-  const TeamData = useTeamData('');
-  const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
+    fetchRoles();
+  }, []);
+  const RoleOption: { label: string; value: any }[] | undefined = (roles || []).map((item: { name: string; id: string }) => ({
+    label: item?.name,
+    value: item?.id,
+  }));  
+
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm(
+      "Вы уверены, что хотите удалить этот админ?"
+    );
+    if (shouldDelete && id !== undefined) {
+      userController.deleteUserController(id).then((data: any) => {
+        document.location.replace(`/#/users`);
+      });
+    }
+  };
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -98,7 +125,7 @@ const UserEdit = () => {
                               label="First name"
                               name="first_name"
                             >
-                              <Input readOnly/>
+                              <Input readOnly />
                             </Form.Item>
                           </Col>
                           <Col span={6}>
@@ -107,7 +134,7 @@ const UserEdit = () => {
                               label="Last name"
                               name="last_name"
                             >
-                              <Input readOnly/>
+                              <Input readOnly />
                             </Form.Item>
                           </Col>
                           <Col span={6}>
@@ -116,34 +143,44 @@ const UserEdit = () => {
                               label="Username"
                               name="username"
                             >
-                              <Input readOnly/>
+                              <Input readOnly />
                             </Form.Item>
                           </Col>
                           <Col span={4}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
                               label="Team"
-                              name='team_id'
+                              name="team_id"
                             >
                               <Select
-                                onChange={(value: any) => setTeamId(value)}
+                                defaultValue={teamValue}
                                 options={TeamOption}
                               />
                             </Form.Item>
                           </Col>
-                        </Row>
-                        <Row gutter={[16, 10]}>
-                          <Col span={6}>
+                          <Col span={4}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="Is Staff"
-                              name="is_staff"
+                              label="Role"
+                              name="role_id"
                             >
-                              <Switch defaultChecked={data?.is_staff} />
+                              <Select
+                                options={RoleOption}
+                              />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Form.Item>
+                          {isSuper === "true" && (
+                            <Button
+                              onClick={() => ClickDelete()}
+                              type="primary"
+                              style={{ marginRight: 10 }}
+                              danger
+                            >
+                              Delete
+                            </Button>
+                          )}
                           <Button type="primary" htmlType="submit">
                             Submit
                           </Button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomerOne } from "../../Hooks/Customers";
 import {
@@ -12,39 +12,69 @@ import {
   Input,
   Button,
   Switch,
-  Select,
 } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-import { useCompanyData } from "../../Hooks/Companies";
+import { companyController } from "../../API/LayoutApi/companies";
 
 const TabPane = Tabs.TabPane;
 
 type params = {
   readonly id: any;
 };
+const isSuper = localStorage.getItem("isSuperUser");
 
 type MyObjectType = {
-  [key: string | number]: any; // Индексная подпись с параметром типа 'string'
+  [key: string | number]: any;
 };
 const CustomerEdit = () => {
+  
+  
   const { id } = useParams<params>();
   const { data, refetch, status }: MyObjectType = useCustomerOne(id);
   let navigate = useNavigate();
-  const [companyId, setCompanyId] = useState<any>(data?.name);
-  const CompanyData = useCompanyData(companyId);
-  const CompnayOption: { label: string; value: any }[] | undefined =
-    CompanyData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
   const onSubmit = async (value: any) => {
     await customerController.customerPatch(value, id);
     refetch();
-    navigate(-1);
+    document.location.replace('/#/customers')
+  };
+
+  
+
+  const [companyValue, setCompanyValue] = useState<any>();
+  const [companyData, setCompanyData] = useState<MyObjectType>();
+  const [companyId, setCompanyId] = useState<any>(null);
+  useEffect(() => {
+    if (data) {
+      if (data.company_id === null) {
+        setCompanyId(null);
+      }
+      const companyIdFromData = data.company_id;
+      setCompanyId(companyIdFromData);
+    }
+  }, [data]);
+  useEffect(() => {
+    if (companyId !== null) {
+      companyController.companyOne(companyId).then((CompanyData) => {
+        setCompanyData(CompanyData);
+      });
+    }
+  }, [companyId]);
+  useEffect(() => {
+    if (companyData && companyData.name) {
+      setCompanyValue(companyData.name);
+    }
+  }, [companyData]);
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm(
+      "Вы уверены, что хотите удалить этот customer?"
+    );
+    if (shouldDelete && id !== undefined) {
+      customerController.deleteCustomerController(id).then((data: any) => {
+        document.location.replace(`/#/customers`);
+      });
+    }
   };
 
   return (
@@ -105,29 +135,30 @@ const CustomerEdit = () => {
                         </Row>
                         <Row gutter={[16, 10]}>
                           <Col span={6}>
-                            <Form.Item
-                              wrapperCol={{ span: "100%" }}
-                              label="Company"
-                              name='company_id'
-                            >
-                              <Select
-                                onChange={(value: any) => setCompanyId(value)}
-                                options={CompnayOption}
-                                value={companyId}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col span={6}>
-                            <Form.Item
-                              wrapperCol={{ span: "100%" }}
-                              label="is_active"
-                              name="is_active"
-                            >
-                              <Switch defaultChecked={data?.is_active} />
-                            </Form.Item>
+                          <Form.Item
+                                  wrapperCol={{ span: "100%" }}
+                                  label="Company"
+                                >
+                                  {companyValue !== undefined && (
+                                    <Input
+                                      defaultValue={companyValue}
+                                      readOnly
+                                    />
+                                  )}
+                                </Form.Item>
                           </Col>
                         </Row>
                         <Form.Item>
+                        {isSuper === "true" && (
+                            <Button
+                              onClick={() => ClickDelete()}
+                              type="primary"
+                              style={{marginRight: 10}}
+                              danger
+                            >
+                              Delete
+                            </Button>
+                          )}
                           <Button type="primary" htmlType="submit">
                             Submit
                           </Button>

@@ -1,13 +1,8 @@
 
 
 import React from "react";
-import { Button, Modal, Space, Spin, Table, Tag } from "antd";
-import { Link } from "react-router-dom";
-import { ExclamationCircleFilled } from "@ant-design/icons";
-import { teamController } from "../../API/LayoutApi/teams";
+import { Spin, Table, Tag } from "antd";
 import moment from "moment";
-
-const { confirm } = Modal;
 
 type numStr = string | number;
 
@@ -22,30 +17,27 @@ interface teamSource {
 }
 const TeamTable = ({
     data = [],
-    onChange,
     isLoading,
     isFetching,
-    refetch,
 }: {
     data: any | undefined;
-    onChange(current: any): void;
     isLoading: boolean | undefined;
     isFetching: boolean | undefined;
-    refetch(): void;
 }) => {
     const columns: object[] = [
         {
             title: "No",
             dataIndex: "no",
             key: "no",
+            width: '5%'
         },
         {
-            title: "name",
+            title: "Name",
             dataIndex: "name",
             key: "name",
         },
         {
-            title: "created_at",
+            title: "Created at",
             dataIndex: "created_at",
             key: "created_at",
         },
@@ -70,42 +62,6 @@ const TeamTable = ({
                 return record.is_active === value;
             },
         },
-        // {
-        //     title: "Actions",
-        //     dataIndex: "action",
-        //     key: "action",
-        //     render: ({
-        //         id,
-        //         queryClient,
-        //     }: {
-        //         id: string;
-        //         queryClient: any;
-        //     }) => {
-        //         const showConfirm = () => {
-        //             confirm({
-        //                 title: "Teams",
-        //                 icon: <ExclamationCircleFilled />,
-        //                 content: "Do you want to delete this Team ?",
-        //                 onOk: async () => {
-        //                     return new Promise(async (resolve, reject) => {
-        //                         setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        //                         await teamController.deleteTeamController(id);
-
-        //                     })
-        //                 },
-        //                 onCancel() { },
-        //             });
-        //         };
-        //         return (
-        //             <Space>
-        //                 {/* <Link to={`${id}`}>
-        //                     <Button>Edit</Button>
-        //                 </Link> */}
-        //                 {/* <Button onClick={showConfirm}>Delete</Button> */}
-        //             </Space>
-        //         );
-        //     },
-        // },
     ];
     return (
         <div>
@@ -114,12 +70,10 @@ const TeamTable = ({
                 onRow={(record, rowIndex) => {
                     return {
                         onClick: (event) => {
-                            console.log(record);
                             document.location.replace(`/#/teams/${record.id}`);
                         },
                     };
                 }}
-                    onChange={onChange}
                     dataSource={data?.map((u: any, i: number): teamSource => {
                         let createCr = u.created_at;
                         const obj: teamSource = {

@@ -13,21 +13,23 @@ import {
   Button,
   Switch,
   Select,
+  Tag,
 } from "antd";
 import { companyController } from "../../API/LayoutApi/companies";
-import { FormOutlined,DashboardOutlined } from "@ant-design/icons";
+import { FormOutlined, DashboardOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
 import Table, { ColumnsType } from "antd/es/table";
 import instance from "../../API/api";
+import AddDriver from "./AddDriver";
 
 const TabPane = Tabs.TabPane;
 type params = {
   readonly id: any;
 };
-
+const isSuper = localStorage.getItem("isSuperUser");
 type MyObjectType = {
-  [key: string | number]: any; 
+  [key: string | number]: any;
 };
 const CompanyEdit = () => {
   const { id } = useParams<params>();
@@ -43,17 +45,15 @@ const CompanyEdit = () => {
   const [teamId, setTeamId] = useState<any>(data?.name);
   const TeamData = useTeamData(teamId);
   const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.data?.map(
-      (item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id
-      })
-    )
+    TeamData?.data?.data?.map((item: { name: string; id: string }) => ({
+      label: item?.name,
+      value: item?.id,
+    })); 
 
   const [customerData, setCustomerData] = useState<any>();
 
   useEffect(() => {
-    if(id !== undefined){
+    if (id !== undefined) {
       const fetchNewData = async () => {
         try {
           const { data }: any = await instance(`customers-by-company/${id}`);
@@ -62,31 +62,71 @@ const CompanyEdit = () => {
           console.error(error);
         }
       };
-      fetchNewData()
+      fetchNewData();
     }
-  }, [id])
-  console.log(customerData);
-  console.log(data);
-  
+  }, [id]);
+
   interface DataType {
+    no: number | string;
     name: string;
+    id: number;
     profession: string;
+    is_active: boolean;
     key: React.Key;
   }
 
   const columns: ColumnsType<DataType> = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "No",
+      dataIndex: "no",
+      key: "no",
     },
     {
-      title: 'role',
-      dataIndex: 'profession',
-      key: 'profession',
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
     },
-  ]
-  
+    {
+      title: "Role",
+      dataIndex: "profession",
+      key: "profession",
+    },
+    {
+      title: "Is Active",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (tag: boolean) => (
+        <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
+      ),
+      filters: [
+        {
+          text: "True",
+          value: true,
+        },
+        {
+          text: "False",
+          value: false,
+        },
+      ],
+      onFilter: (value: any, record: any) => {
+        return record.isActive === value;
+      },
+    },
+  ];
+  const [open, setOpen] = useState(false);
+  const showModal = () => {
+    setOpen(true);
+  };
+  const ClickDelete = () => {
+    const shouldDelete = window.confirm(
+      "Вы уверены, что хотите удалить эту компанию?"
+    );
+    if (shouldDelete && id !== undefined) {
+      companyController.deleteCompanyController(id).then((data: any) => {
+        document.location.replace(`/#/companies`);
+      });
+    }
+  };
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -127,7 +167,7 @@ const CompanyEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="name"
+                              label="Name"
                               name="name"
                             >
                               <Input />
@@ -136,7 +176,7 @@ const CompanyEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="owner"
+                              label="Owner"
                               name="owner"
                             >
                               <Input />
@@ -145,7 +185,7 @@ const CompanyEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="team_id"
+                              label="Team"
                               name="team_id"
                             >
                               <Select
@@ -160,17 +200,39 @@ const CompanyEdit = () => {
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
-                              label="is_active"
-                              name="is_active"
+                              label="USDOT"
+                              name="usdot"
                             >
-                              <Switch defaultChecked={data?.is_active} />
+                              <Input />
+                            </Form.Item>
+                          </Col>
+                          <Col span={6}>
+                            <Form.Item
+                              wrapperCol={{ span: "100%" }}
+                              label="API Key"
+                              name="api_key"
+                            >
+                              <Input />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Form.Item>
-                          <Button type="primary" htmlType="submit">
-                            Submit
-                          </Button>
+                          {isSuper === "true" && (
+                            <Button
+                              onClick={() => ClickDelete()}
+                              type="primary"
+                              style={{marginRight: 10}}
+                              danger
+                            >
+                              Delete
+                            </Button>
+                          )}
+                          {isSuper === "true" && (
+                            <Button type="primary" htmlType="submit">
+                              Submit
+                            </Button>
+                          )}
+                          
                         </Form.Item>
                       </Form>
                     </Space>
@@ -184,17 +246,57 @@ const CompanyEdit = () => {
                     }
                     key="2"
                   >
-                   <Table
-                      dataSource={customerData?.map((u: any): DataType => {
-                        const obj: DataType = {
-                          name: u?.name,
-                          profession: u?.profession,
-                          key: u?.id,
+                    <Table
+                      onRow={(record) => {
+                        let isTextSelected = false;
+                        document.addEventListener("selectionchange", () => {
+                          const selection = window.getSelection();
+                          if (
+                            selection !== null &&
+                            selection.toString() !== ""
+                          ) {
+                            isTextSelected = true;
+                          } else {
+                            isTextSelected = false;
+                          }
+                        });
+                        return {
+                          onClick: (event: any) => {
+                            if (isTextSelected) {
+                            }
+                            document.location.replace(
+                              `/#/customers/${record.id}`
+                            );
+                          },
                         };
-                        return obj;
-                      })}
+                      }}
+                      dataSource={customerData?.map(
+                        (u: any, i: number): DataType => {
+                          const obj: DataType = {
+                            no: i + 1,
+                            id: u?.id,
+                            name: u?.name,
+                            is_active: u?.is_active,
+                            profession: u?.profession,
+                            key: u?.id,
+                          };
+                          return obj;
+                        }
+                      )}
                       columns={columns}
                     />
+                    {open && (
+                      <AddDriver id={id} open={open} setOpen={setOpen} />
+                    )}
+                    <Button
+                      type="primary"
+                      style={{ marginLeft: "auto" }}
+                      size={"middle"}
+                      onClick={showModal}
+                      disabled={isSuper === "false"}
+                    >
+                      Add Driver
+                    </Button>
                   </TabPane>
                 </Tabs>
               </Space>

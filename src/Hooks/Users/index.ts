@@ -18,7 +18,3 @@ export const useUserOne = (
     { refetchOnWindowFocus: false }
   );
 };
-
-export const useFindUser = async (query: any) => {
-  return await userController.userFinderId(query);
-};

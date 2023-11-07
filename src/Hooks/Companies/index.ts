@@ -18,7 +18,3 @@ export const useCompanyOne = (
     { refetchOnWindowFocus: false }
   );
 };
-
-export const useFindCompany = async (query: string) => {
-  return await companyController.companyFinderId(query);
-};
