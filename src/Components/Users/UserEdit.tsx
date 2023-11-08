@@ -10,20 +10,17 @@ import {
   Col,
   Input,
   Button,
-  Switch,
   Select,
 } from "antd";
 import { userController } from "../../API/LayoutApi/users";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
-import { useEffect, useState } from "react";
-import instance from "../../API/api";
-import axios from "axios";
+import { useRoleData } from "../../Hooks/Role";
 const isSuper = localStorage.getItem("isSuperUser");
 const TabPane = Tabs.TabPane;
 type params = {
-  readonly id: any;
+  readonly id: string;
 };
 type MyObjectType = {
   [key: string | number]: any;
@@ -35,49 +32,29 @@ const UserEdit = () => {
   let navigate = useNavigate();
 
   const onSubmit = async (value: any) => {
-    // if ((value.team_id === null && value.team_id !== '') || (value.team_id === undefined && value.team_id !== '')) {
-    //   delete value.team_id;
-    // }
-    await userController.userPatch(value, id);
+    id && await userController.userPatch(value, id);
     refetch();
-    document.location.replace("/#/users/");
+    // navigate(-1)
+    document.location.replace("/#/users/"); 
   };
-  const [teamValue, setTeamValue] = useState<any>();
-  const TeamData = useTeamData("");
+  const TeamData = useTeamData('');
   const noTeamOption = { label: " - - - - - -", value: "" };
-  const TeamOption: { label: string; value: any }[] | undefined = (
-    TeamData?.data || []
-  ).map((item) => ({
+  const TeamOption: { label: string; value: any }[] | undefined = 
+    TeamData?.data?.map((item) => ({
     label: item?.name,
     value: item?.id,
   }));
   if (TeamOption) {
     TeamOption.unshift(noTeamOption);
   }
-  const [roles, setRoles] = useState<any>([]);
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await instance("users/roles/");
-        setRoles(response.data);
-      } catch (error) {
-        console.error("Произошла ошибка при загрузке данных:", error);
-      }
-    };
-
-    fetchRoles();
-  }, []);
-  const RoleOption: { label: string; value: any }[] | undefined = (roles || []).map((item: { name: string; id: string }) => ({
-    label: item?.name,
-    value: item?.id,
-  }));  
+  const roleData = useRoleData()
 
   const ClickDelete = () => {
     const shouldDelete = window.confirm(
       "Вы уверены, что хотите удалить этот админ?"
     );
     if (shouldDelete && id !== undefined) {
-      userController.deleteUserController(id).then((data: any) => {
+      userController.deleteUserController(id).then(() => {
         document.location.replace(`/#/users`);
       });
     }
@@ -153,7 +130,6 @@ const UserEdit = () => {
                               name="team_id"
                             >
                               <Select
-                                defaultValue={teamValue}
                                 options={TeamOption}
                               />
                             </Form.Item>
@@ -165,7 +141,10 @@ const UserEdit = () => {
                               name="role_id"
                             >
                               <Select
-                                options={RoleOption}
+                                options={roleData?.data?.map((item) => ({
+                                  label: item?.name,
+                                  value: item?.id,
+                                }))}
                               />
                             </Form.Item>
                           </Col>

@@ -2,20 +2,18 @@ import { TTeam } from "../../types/Team/TTeam";
 import instance from "../api";
 import { message } from "antd";
 
+export type TTeamPutParams = {
+  name?: string;
+  is_active?: boolean
+}
+
+export type TTeamPostParams = {
+  name?: string;
+  is_active?: boolean
+}
+
 export const teamController = {
-  // async read(id:string) {
-  //   const { data }: { data: object } = await instance(
-  //     `teams/`
-  //   );
-  //   const getCount = async () => {
-  //     return 0;
-  //   };
-  //   const count = await getCount();
-
-  //   return { data, count: count };
-  // },
-
-  async read(name?: string) {
+  async read(name: string) {
     const { data } = await instance.get<TTeam[]>(
       `teams/?name=${name}`, 
     );
@@ -23,51 +21,37 @@ export const teamController = {
   },
 
   async teamOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`team/${Id}`);
+    const { data } = await instance.get<TTeam>(`team/${Id}`);
     return data;
   },
 
-  async teamPatch(teamData: any, team_id: string) {
-    const key = "updatable";
-    message.loading({ content: "Loading...", key });
-    const { data }: { data: any } = await instance(`team/${team_id}/`, {
-      method: "PUT",
-      data: teamData,
-    }).then((u) => {
+  async teamPatch(obj: TTeamPutParams, id: string) {
+    const { data } = await instance.put<TTeam>(`team/${id}/`, obj).then((u) => {
       setTimeout(() => {
-        message.success({ content: "Loaded!", key, duration: 2 });
+        message.success({ content: "Loaded!", duration: 2 });
       }, 1000);
       return u;
     });
     return data;
   },
 
-  async addTeamController(teamId: any) {
-    message.loading({ content: "Loading...", key: teamId });
-    const { data } = await instance("team/", {
-      method: "POST",
-      data: {
-        ...teamId,
-      },
-    }).then((u) => {
+  async addTeamController(obj: TTeamPostParams) {
+    const { data } = await instance.post<TTeam>("team/", obj).then((u) => {
       setTimeout(() => {
-        message.success({ content: "Loaded!", key: teamId, duration: 2 });
+        message.success({ content: "Loaded!", duration: 2 });
       }, 1000);
       return u;
     });
     return data;
   },
 
-  async deleteTeamController(team_id: string) {
-    message.loading({ content: "Loading...", key: team_id });
+  async deleteTeamController(id: string) {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`team/${team_id}`, {
-        method: "DELETE",
-      }).then((u) => {
+      const { data } = await instance.delete(`team/${id}`).then((u) => {
         setTimeout(() => {
-          message.success({ content: "Deleted!", key: team_id, duration: 2 });
+          message.success({ content: "Deleted!", duration: 2 });
         }, 1000);
         return u;
       });

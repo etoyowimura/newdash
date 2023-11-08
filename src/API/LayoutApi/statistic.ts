@@ -88,7 +88,7 @@ export const statController = {
   },
 
   async statOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`stats/${Id}`);
+    const { data } = await instance.get<TStat>(`stats/${Id}`);
     return data;
   },
 };

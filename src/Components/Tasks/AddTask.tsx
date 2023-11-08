@@ -1,11 +1,11 @@
 import { Input, Modal, Form as FormAnt, Select, Upload, Switch } from "antd";
 import { taskController } from "../../API/LayoutApi/tasks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useServiceData } from "../../Hooks/Services";
-import { customerController } from "../../API/LayoutApi/customers";
 import { UploadOutlined } from "@ant-design/icons";
 import { useTeamData } from "../../Hooks/Teams";
-import instance from "../../API/api";
+import { useCompanyData } from "../../Hooks/Companies";
+import { useCustomerByComanyData } from "../../Hooks/Customers";
 const { Option } = Select;
 const AddTask = ({
   open,
@@ -20,131 +20,52 @@ const AddTask = ({
     setOpen(!open);
   };
   const [fileIds, setFileIds] = useState([]);
-  const [companyName, setCompanyName] = useState<string>("");
-  const [customerName, setCustomerName] = useState<any>("");
-  const [characters, setCharacters] = useState<any>([]);
-  const [customerData, setCustomerData] = useState<any>([]);
+  const [companyName, setCompanyName] = useState<string>();
+  const [customerName, setCustomerName] = useState<string>();
+  const [companyId, setCompanyId] = useState<string>();
   const ServiceData = useServiceData();
-  const TeamData = useTeamData('');
-  const [companyId, setCompanyId] = useState<any>();
-  const [options, setOptions] = useState<any>();
-  const [cusOptions, setCusOptions] = useState<any>();
-
-  const ServiceOption: { label: string; value: any }[] | undefined =
-    ServiceData?.data?.map((item) => ({
-      label: item?.title,
-      value: item?.id,
-    }));
-
-  type Data = {
-    data?: {
-      data: Array<any>;
-      count: number | string;
-    };
-    isLoading?: boolean;
-    refetch?: any;
-    isFetching?: boolean;
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data }: Data = await instance(`companies/?name=${companyName}`);
-        setCharacters(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData();
-  }, [companyName]);
-  useEffect(() => {
-    const CompanyOption: { label: string; value: any }[] | undefined =
-      characters?.map((item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id,
-      }));
-    setOptions(CompanyOption);
-  }, [characters]);
-
-  useEffect(() => {
-    if (companyId !== undefined) {
-      customerController
-        .customerByCompany(companyId, customerName)
-        .then((data) => {
-          setCustomerData(data);
-        });
-    }
-  }, [companyId]);
-
-  useEffect(() => {
-    if (companyId !== undefined) {
-      const fetchData = async () => {
-        try {
-          const { data }: Data = await instance(
-            `customers-by-company/${companyId}/?name=${customerName}`
-          );
-          setCustomerData(data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      fetchData();
-    }
-  }, [customerName]);
-
-  useEffect(() => {
-    const CustomerOption: { label: string; value: any }[] | undefined =
-      customerData?.map((item: { name: string; id: string }) => ({
-        label: item?.name,
-        value: item?.id,
-      }));
-    setCusOptions(CustomerOption);
-  }, [customerData]);
   
-  const teamOptions: { label: string; value: any }[] | undefined =
-    TeamData?.data?.map((item) => ({
-      label: item?.name,
-      value: item?.id,
-    }));
+  const TeamData = useTeamData("");
+  const companyData = useCompanyData({ name: companyName });
+  const customerData = useCustomerByComanyData({
+    id: companyId,
+    name: customerName,
+  });
 
+  
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  function handlePaste(event: any) {
+    const clipboardData = event.clipboardData || window.Clipboard;
+    if (clipboardData && clipboardData.items.length > 0) {
+      const clipboardItem = clipboardData.items[0];
+      if (clipboardItem.kind === "file") {
+        const file = clipboardItem.getAsFile();
+        const formData = new FormData();
+        formData.append("file", file);
 
-const [previewImage, setPreviewImage] = useState<string | null>(null); // Состояние для предварительного просмотра
-
-function handlePaste(event: any) {
-  const clipboardData = event.clipboardData || window.Clipboard;
-  if (clipboardData && clipboardData.items.length > 0) {
-    const clipboardItem = clipboardData.items[0];
-    if (clipboardItem.kind === "file") {
-      const file = clipboardItem.getAsFile();
-      const formData = new FormData();
-      formData.append("file", file);
-      
-      // Предварительный просмотр изображения
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target && e.target.result) {
-          setPreviewImage(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-      taskController
-        .addTaskFile(formData)
-        .then((response) => {
-          const fileId = response.id;
-          setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
-          const updatedValues = form.getFieldsValue();
-          updatedValues.attachment_ids = [
-            ...updatedValues.attachment_ids,
-            fileId,
-          ];
-          form.setFieldsValue(updatedValues);
-        })
-        .catch((error) => {
-          // Обработка ошибки при вставке из буфера обмена
-        });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target && e.target.result) {
+            setPreviewImage(e.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+        taskController
+          .addTaskFile(formData)
+          .then((response) => {
+            const fileId = response.id;
+            setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
+            const updatedValues = form.getFieldsValue();
+            updatedValues.attachment_ids = [
+              ...updatedValues.attachment_ids,
+              fileId,
+            ];
+            form.setFieldsValue(updatedValues);
+          })
+          .catch((error) => {});
+      }
     }
   }
-}
   return (
     <div onPaste={(event) => handlePaste(event)}>
       <Modal
@@ -178,7 +99,10 @@ function handlePaste(event: any) {
               showSearch
               placeholder="Search Company"
               onSearch={(value: any) => setCompanyName(value)}
-              options={options}
+              options={companyData?.data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
               value={companyName}
               filterOption={false}
               autoClearSearchValue={false}
@@ -197,7 +121,10 @@ function handlePaste(event: any) {
               showSearch
               placeholder="Search Customer"
               onSearch={(value: any) => setCustomerName(value)}
-              options={cusOptions}
+              options={customerData?.data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
               value={customerName}
               filterOption={false}
               autoClearSearchValue={false}
@@ -209,7 +136,12 @@ function handlePaste(event: any) {
             name="service_id"
             rules={[{ required: true, message: "Please select service!" }]}
           >
-            <Select options={ServiceOption} />
+            <Select
+              options={ServiceData?.data?.map((item) => ({
+                label: item?.title,
+                value: item?.id,
+              }))}
+            />
           </FormAnt.Item>
           <FormAnt.Item
             label="Assigned to"
@@ -218,7 +150,12 @@ function handlePaste(event: any) {
               { required: true, message: "Please select one of the teams!" },
             ]}
           >
-            <Select options={teamOptions} />
+            <Select
+              options={TeamData?.data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
+            />
           </FormAnt.Item>
           <FormAnt.Item
             label="Note"
@@ -254,13 +191,10 @@ function handlePaste(event: any) {
         </FormAnt>
         <FormAnt>
           <FormAnt.Item label="File" name="attachment">
-            <div >
+            <div>
               <Upload.Dragger
                 name="file"
                 multiple={true}
-                onDrop={(event) => {
-                  const data = event.dataTransfer.getData('File')
-                }}
                 customRequest={({ file, onSuccess }: any) => {
                   const formData = new FormData();
                   formData.append("file", file);
@@ -292,7 +226,13 @@ function handlePaste(event: any) {
                   Click or drag a file here to upload
                 </p>
               </Upload.Dragger>
-             {previewImage && <img src={previewImage} alt="Предварительный просмотр"style={{width: 200, height:200}} />}
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt="Предварительный просмотр"
+                  style={{ width: 200, height: 200 }}
+                />
+              )}
             </div>
           </FormAnt.Item>
         </FormAnt>

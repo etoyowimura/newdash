@@ -16,10 +16,18 @@ export const useTasks = ({
   );
 };
 
-export const useTaskOne = (taskId: number | string | undefined): any => {
+export const useTaskOne = (taskId: number) => {
   return useQuery(
-    [`task/${taskId || "all"}`, taskId],
+    [`task/${taskId}/`, taskId],
     () => taskController.taskOne(taskId),
+    { refetchOnWindowFocus: false }
+  );
+};
+
+export const useTaskHistory = (Id: number) => {
+  return useQuery(
+    [`customer/${Id}/`, Id],
+    () => taskController.getHistory(Id),
     { refetchOnWindowFocus: false }
   );
 };

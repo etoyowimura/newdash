@@ -1,100 +1,102 @@
-import { TTask } from "../../types/Tasks/TTasks";
+import { TTask, TTaskHistory } from "../../types/Tasks/TTasks";
 import { TPagination } from "../../types/common/TPagination";
 import instance from "../api";
 import { message } from "antd";
 
-
 export type TTasksGetParams = {
-  company?: string,
+  company?: string;
   customer?: string;
   user?: string;
   status?: string;
   team?: string;
   page?: string;
-}
+};
+
+export type TTasksPutParams = {
+  company_id?: number;
+  customer_id?: number;
+  service_id?: number;
+  assigned_to_id?: number;
+  note?: string;
+  status?: string;
+  pti?: boolean;
+};
+
+export type TTasksPostParams = {
+  company_id?: number;
+  customer_id?: number;
+  service_id?: number;
+  provider_id?: number;
+  assigned_to_id?: number;
+  in_charge_id?: number;
+  note?: string;
+  status?: string;
+  is_active?: boolean;
+  pti?: boolean;
+  attachment_ids?: number[];
+};
 
 export const taskController = {
   async read(filterObject: TTasksGetParams) {
-    const params = {...filterObject};
-  
-    if (!!filterObject.page && filterObject.page !== '0') params.page = filterObject.page;
+    const params = { ...filterObject };
+
+    if (!!filterObject.page && filterObject.page !== "0")
+      params.page = filterObject.page;
     if (!!filterObject.company) params.company = filterObject.company;
     if (!!filterObject.customer) params.customer = filterObject.customer;
     if (!!filterObject.user) params.user = filterObject.user;
     if (Array.isArray(filterObject.status)) {
-      params.status = filterObject.status.join(", "); // Объединяем значения в одну строку, разделенную запятыми
+      params.status = filterObject.status.join(",");
     }
     if (Array.isArray(filterObject.team)) {
-      params.team = filterObject.team.join(", "); // Повторяющиеся параметры
+      params.team = filterObject.team.join(", ");
     }
-  
-    const { data } = await instance.get<TPagination<TTask[]>>(
-      `tasks/`, {params}
-    );
+
+    const { data } = await instance.get<TPagination<TTask[]>>(`tasks/`, {
+      params,
+    });
     return data;
   },
 
-  async getHistory(task_id:number) {
-    const { data }: { data: object } = await instance(`task-history/${task_id}/`);
-    return data
-  },
-
-
-  async taskOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`task/${Id}/`);
+  async getHistory(id: number) {
+    const { data } = await instance.get<TTaskHistory[]>(`task-history/${id}/`);
     return data;
   },
 
-  async taskPatch(taskData: any, task_id: number) {
-    const key = "updatable";
-    message.loading({ content: "Loading...", key });
-    const { data }: { data: any } = await instance(`task/${task_id}/`, {
-      method: "PUT",
-      data: taskData,
-    }).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Saved!", key, duration: 2 });
-      }, 500);
+  async taskOne(Id: number) {
+    const { data } = await instance.get<TTask>(`task/${Id}/`);
+    return data;
+  },
+
+  async taskPatch(obj: TTasksPutParams, task_id: number) {
+    const { data } = await instance
+      .put<TTask>(`task/${task_id}/`, obj)
+      .then((u) => {
+        return u;
+      });
+    return data;
+  },
+
+  async addTaskController(obj: TTasksPostParams) {
+    const { data } = await instance.post<TTask>("task/", obj).then((u) => {
       return u;
     });
     return data;
   },
 
-  async addTaskController(taskId: any) {
-    message.loading({ content: "Loading...", key: taskId });
-    const { data } = await instance("task/", {
-      method: "POST",
-      data: {
-        ...taskId,
-      },
-    }).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Loaded!", key: taskId, duration: 2 });
-      }, 1000);
-      return u;
-    });
-    return data;
-  },
-  
   async addTaskFile(formData: any) {
     const { data } = await instance.post("attachment/", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data', // Установите правильный Content-Type
+        "Content-Type": "multipart/form-data", // Установите правильный Content-Type
       },
     });
     return data;
   },
-  async deleteTaskController(task_id: number) {
-    message.loading({ content: "Loading...", key: task_id });
+  async deleteTaskController(id: number) {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`task/${task_id}/`, {
-        method: "DELETE",
-      }).then((u) => {
-        setTimeout(() => {
-          message.success({ content: "Deleted!", key: task_id, duration: 2 });
-        }, 1000);
+      const { data } = await instance.delete(`task/${id}/`).then((u) => {
         return u;
       });
       res = data;
@@ -104,16 +106,10 @@ export const taskController = {
     return { data: res, error };
   },
   async deleteAttachmentController(id: number) {
-    message.loading({ content: "Loading...", key: id });
     let res;
     let error = "";
     try {
-      const { data } = await instance(`attachment/${id}/`, {
-        method: "DELETE",
-      }).then((u) => {
-        setTimeout(() => {
-          message.success({ content: "Deleted!", key: id, duration: 2 });
-        }, 1000);
+      const { data } = await instance.delete(`attachment/${id}/`).then((u) => {
         return u;
       });
       res = data;
@@ -121,5 +117,5 @@ export const taskController = {
       error = "Oops something went wrong!";
     }
     return { data: res, error };
-  }
+  },
 };

@@ -1,7 +1,7 @@
 import { useQuery } from "react-query";
 import { teamController } from "../../API/LayoutApi/teams";
 
-export const useTeamData = (name?: string) => {
+export const useTeamData = (name: string) => {
   return useQuery(
     [`teams/?name=${name}/`, name],
     () => teamController.read(name),

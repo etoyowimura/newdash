@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useTaskOne } from "../../Hooks/Tasks";
+import { useTaskHistory, useTaskOne } from "../../Hooks/Tasks";
 import {
   Form,
   Spin,
@@ -24,177 +24,69 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-import { useServiceData } from "../../Hooks/Services";
-import { companyController } from "../../API/LayoutApi/companies";
-import { customerController } from "../../API/LayoutApi/customers";
-import Table, { ColumnsType } from "antd/es/table";
+import { useServiceData, useServiceOne } from "../../Hooks/Services";
+import Table from "antd/es/table";
 import { useTeamData } from "../../Hooks/Teams";
-import { serviceController } from "../../API/LayoutApi/services";
 import { Switch } from "antd";
 import moment from "moment";
+import { useCompanyOne } from "../../Hooks/Companies";
+import { useCustomerOne } from "../../Hooks/Customers";
+import { AttachmentSet } from "../../types/Tasks/TTasks";
 
 const { Option } = Select;
 const TabPane = Tabs.TabPane;
 type params = {
   readonly id: any;
 };
-type MyObjectType = {
-  [key: string | number]: any;
-};
+
 const TaskEdit = () => {
+  const [inCharge, setInChage] = useState<any>();
+  const [adminData, setAdminData] = useState<AttachmentSet[]>([]);
+  const [superData, setSuperData] = useState<AttachmentSet[]>([]);
+
   const navigate = useNavigate();
   const { id } = useParams<params>();
-  const { data, refetch, status }: MyObjectType = useTaskOne(id);
+  const { data, refetch, status } = useTaskOne(id);
+
+  const isSuper = localStorage.getItem("isSuperUser");
+  const admin_id = localStorage.getItem("admin_id");
+
+  const companyData = useCompanyOne(data?.company_id);
+  const customerData = useCustomerOne(data?.customer_id);
+  const serviceData = useServiceOne(data?.service_id);
+
+  const ServiceData = useServiceData();
+  const TeamData = useTeamData("");
+  const historyData = useTaskHistory(id);
+
+  useEffect(() => {
+    if (data?.in_charge_id) {
+      setInChage(data.in_charge_id);
+    }
+    setAdminData([]);
+    setSuperData([]);
+    data?.attachment_set?.map((item) => {
+      if (item.uploaded_by == data.in_charge_id) {
+        setAdminData((prev) => [...prev, item]);
+      } else {
+        setSuperData((prev) => [...prev, item]);
+      }
+    });
+  }, [data]);
+
   const onSubmit = async (value: any) => {
     await taskController.taskPatch(value, id);
     refetch();
     navigate(-1);
-    document.location.replace("/");
+    // document.location.replace("/");
   };
-  const isSuper = localStorage.getItem("isSuperUser");
-  const admin_id = localStorage.getItem("admin_id");
-  const [companyId, setCompanyId] = useState<any>(null);
-  const [companyValue, setCompanyValue] = useState<any>();
-  const [serviceValue, setServiceValue] = useState<any>();
-  const [companyData, setCompanyData] = useState<MyObjectType>();
-  const [customerId, setCustomerId] = useState<any>(null);
-  const [serviceId, setServiceId] = useState<any>(null);
-  const [customerValue, setCustomerValue] = useState<any>();
-  const [customerData, setCustomerData] = useState<MyObjectType>();
-  const [serviceData, setServiceData] = useState<MyObjectType>();
-  useEffect(() => {
-    if (data) {
-      if (data.company_id === null) {
-        setCompanyId(null);
-      }
-      if (data.customer_id === null) {
-        setCustomerId(null);
-      }
-      if (data.service_id === null) {
-        setServiceId(null);
-      }
-      const companyIdFromData = data.company_id;
-      const customerIdFromData = data.customer_id;
-      const serviceIdFromData = data.service_id;
-      setCompanyId(companyIdFromData);
-      setCustomerId(customerIdFromData);
-      setServiceId(serviceIdFromData);
-    }
-  }, [data]);
-  useEffect(() => {
-    if (companyId !== null) {
-      companyController.companyOne(companyId).then((CompanyData) => {
-        setCompanyData(CompanyData);
-      });
-    }
-  }, [companyId]);
-  useEffect(() => {
-    if (customerId !== null) {
-      customerController.customerOne(customerId).then((CustomerData) => {
-        setCustomerData(CustomerData);
-      });
-    }
-  }, [customerId]);
-  useEffect(() => {
-    if (serviceId !== null) {
-      serviceController.serviceOne(serviceId).then((data) => {
-        setServiceData(data);
-      });
-    }
-  }, [serviceId]);
-
-  useEffect(() => {
-    if (companyData && companyData.name) {
-      setCompanyValue(companyData.name);
-    }
-  }, [companyData]);
-  useEffect(() => {
-    if (customerData && customerData.name) {
-      setCustomerValue(customerData.name);
-    }
-  }, [customerData]);
-  useEffect(() => {
-    if (serviceData && serviceData.title) {
-      setServiceValue(serviceData.title);
-    }
-  }, [serviceData]);
-
-  const ServiceData = useServiceData();
-  const ServiceOption: { label: string; value: any }[] | undefined =
-    ServiceData?.data?.map((item) => ({
-      label: item?.title,
-      value: item?.id,
-    }));
-
-  const [teamId, setTeamId] = useState<any>(data?.name);
-  const TeamData = useTeamData("");
-  const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.map((item) => ({
-      label: item?.name,
-      value: item?.id,
-    }));
-
   const handleClickDelete = (id: any) => {
     if (id !== undefined) {
       taskController.deleteAttachmentController(id).then((e: any) => {
         refetch();
       });
     }
-    refetch();
   };
-  const [historyData, setHistoryData] = useState<any>();
-
-  useEffect(() => {
-    taskController.getHistory(id).then((data) => {
-      setHistoryData(data);
-    });
-  }, [id]);
-
-  interface DataType {
-    admin: string;
-    action: string;
-    description: string;
-    timestamp: string;
-    key: React.Key;
-  }
-
-  const columns: ColumnsType<DataType> = [
-    {
-      title: "Admin",
-      dataIndex: "admin",
-      key: "admin",
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: "Timestamp",
-      dataIndex: "timestamp",
-      key: "timestamp",
-    },
-  ];
-  const [inCharge, setInChage] = useState<any>();
-  const [adminData, setAdminData] = useState<any>([]);
-  const [superData, setSuperData] = useState<any>([]);
-  useEffect(() => {
-    if (data?.in_charge_id) {
-      setInChage(data.in_charge_id);
-    }
-    data?.attachment_set.map((item: any) => {
-      if (item.uploaded_by == data.in_charge_id) {
-        setAdminData((prevAdminData: any) => [...prevAdminData, item]);
-      } else {
-        setSuperData((prevSuperData: any) => [...prevSuperData, item]);
-      }
-    });
-  }, [data]);
   const ClickDelete = () => {
     const shouldDelete = window.confirm(
       "Вы уверены, что хотите удалить эту задачу?"
@@ -209,7 +101,6 @@ const TaskEdit = () => {
   const [fileIds, setFileIds] = useState([]);
   const [imgname, setImgname] = useState<any>([]);
   function handlePaste(event: any) {
-    // Обработка вставки из буфера обмена
     const clipboardData = event.clipboardData || window.Clipboard;
     if (clipboardData && clipboardData.items.length > 0) {
       const clipboardItem = clipboardData.items[0];
@@ -218,17 +109,13 @@ const TaskEdit = () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("task_id", id);
-        taskController
-          .addTaskFile(formData)
-          .then((response) => {
-            const fileId = response.id;
-            const n = [response.file];
-            setImgname((prev: any) => [...prev, ...n]);
-            setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
-          })
-          .catch((error) => {
-            // Обработка ошибки при вставке из буфера обмена
-          });
+        taskController.addTaskFile(formData).then((response) => {
+          const fileId = response.id;
+          const n = [response.file];
+          setImgname((prev: any) => [...prev, ...n]);
+          setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
+          refetch();
+        });
       }
     }
   }
@@ -279,33 +166,29 @@ const TaskEdit = () => {
                           autoComplete="off"
                         >
                           <Row gutter={[16, 10]}>
-                            {companyId !== null && (
+                            {companyData?.data && (
                               <Col span={6}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
                                   label="Company"
                                 >
-                                  {companyValue !== undefined && (
-                                    <Input
-                                      defaultValue={companyValue}
-                                      readOnly
-                                    />
-                                  )}
+                                  <Input
+                                    defaultValue={companyData?.data?.name}
+                                    readOnly
+                                  />
                                 </Form.Item>
                               </Col>
                             )}
-                            {customerId !== null && (
+                            {customerData?.data && (
                               <Col span={6}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
                                   label="Customer"
                                 >
-                                  {customerValue !== undefined && (
-                                    <Input
-                                      defaultValue={customerValue}
-                                      readOnly
-                                    />
-                                  )}
+                                  <Input
+                                    defaultValue={customerData?.data?.name}
+                                    readOnly
+                                  />
                                 </Form.Item>
                               </Col>
                             )}
@@ -320,7 +203,7 @@ const TaskEdit = () => {
                           autoComplete="off"
                         >
                           <Row gutter={[16, 10]}>
-                            {isSuper !== "false" && (
+                            {isSuper !== "false" && ServiceData?.data && (
                               <Col span={8}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
@@ -328,11 +211,10 @@ const TaskEdit = () => {
                                   name="service_id"
                                 >
                                   <Select
-                                    onChange={(value: any) =>
-                                      setServiceId(value)
-                                    }
-                                    options={ServiceOption}
-                                    value={serviceId}
+                                    options={ServiceData?.data?.map((item) => ({
+                                      label: item?.title,
+                                      value: item?.id,
+                                    }))}
                                   />
                                 </Form.Item>
                               </Col>
@@ -343,9 +225,9 @@ const TaskEdit = () => {
                                   wrapperCol={{ span: "100%" }}
                                   label="Service"
                                 >
-                                  {serviceValue !== undefined && (
+                                  {serviceData?.data && (
                                     <Input
-                                      defaultValue={serviceValue}
+                                      defaultValue={serviceData?.data?.title}
                                       readOnly
                                     />
                                   )}
@@ -360,9 +242,10 @@ const TaskEdit = () => {
                                   name="assigned_to_id"
                                 >
                                   <Select
-                                    onChange={(value: any) => setTeamId(value)}
-                                    options={TeamOption}
-                                    value={teamId}
+                                    options={TeamData?.data?.map((item) => ({
+                                      label: item?.name,
+                                      value: item?.id,
+                                    }))}
                                   />
                                 </Form.Item>
                               </Col>
@@ -443,7 +326,7 @@ const TaskEdit = () => {
                                 name="basicFuck"
                                 layout="vertical"
                                 wrapperCol={{ span: 16 }}
-                                initialValues={{ ...data.attachment_set[0] }}
+                                initialValues={{ ...data?.attachment_set?.[0] }}
                                 autoComplete="off"
                                 onFinish={onSubmit}
                               >
@@ -513,7 +396,7 @@ const TaskEdit = () => {
                                 name="basicFuck"
                                 layout="vertical"
                                 wrapperCol={{ span: 16 }}
-                                initialValues={{ ...data.attachment_set[0] }}
+                                initialValues={{ ...data?.attachment_set?.[0] }}
                                 autoComplete="off"
                                 onFinish={onSubmit}
                               >
@@ -629,20 +512,32 @@ const TaskEdit = () => {
                       key="3"
                     >
                       <Table
-                        dataSource={historyData?.map((u: any): DataType => {
-                          let createCr = u.timestamp;
-                          const obj: DataType = {
-                            admin: u?.admin,
-                            action: u?.action,
-                            description: u?.description,
-                            timestamp: createCr
-                              ? moment(createCr).format("DD.MM.YYYY, HH:mm")
-                              : "",
-                            key: u?.id,
-                          };
-                          return obj;
-                        })}
-                        columns={columns}
+                        dataSource={historyData?.data?.map((u, i) => ({
+                          ...u,
+                          no: i + 1,
+                          timestamp: moment(u?.timestamp).format(
+                            "DD.MM.YYYY, HH:mm"
+                          ),
+                          key: u?.id,
+                        }))}
+                        columns={[
+                          {
+                            title: "Admin",
+                            dataIndex: "user",
+                          },
+                          {
+                            title: "Action",
+                            dataIndex: "action",
+                          },
+                          {
+                            title: "Description",
+                            dataIndex: "description",
+                          },
+                          {
+                            title: "Timestamp",
+                            dataIndex: "timestamp",
+                          },
+                        ]}
                       />
                     </TabPane>
                   </Tabs>

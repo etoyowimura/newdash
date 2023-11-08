@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCompanyOne } from "../../Hooks/Companies";
 import {
@@ -11,7 +11,6 @@ import {
   Col,
   Input,
   Button,
-  Switch,
   Select,
   Tag,
 } from "antd";
@@ -19,9 +18,9 @@ import { companyController } from "../../API/LayoutApi/companies";
 import { FormOutlined, DashboardOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
-import Table, { ColumnsType } from "antd/es/table";
-import instance from "../../API/api";
+import Table from "antd/es/table";
 import AddDriver from "./AddDriver";
+import { useCustomerByComanyData } from "../../Hooks/Customers";
 
 const TabPane = Tabs.TabPane;
 type params = {
@@ -32,8 +31,16 @@ type MyObjectType = {
   [key: string | number]: any;
 };
 const CompanyEdit = () => {
+  const [open, setOpen] = useState(false);
   const { id } = useParams<params>();
+
+  const TeamData = useTeamData('');
+  const customerData = useCustomerByComanyData({ id: id });
   const { data, refetch, status }: MyObjectType = useCompanyOne(id);
+
+  const showModal = () => {
+    setOpen(true);
+  };
   let navigate = useNavigate();
 
   const onSubmit = async (value: any) => {
@@ -42,91 +49,17 @@ const CompanyEdit = () => {
     navigate(-1);
   };
 
-  const [teamId, setTeamId] = useState<any>(data?.name);
-  const TeamData = useTeamData(teamId);
-  const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.map((item) => ({
-      label: item?.name,
-      value: item?.id,
-    })); 
-
-  const [customerData, setCustomerData] = useState<any>();
-
-  useEffect(() => {
-    if (id !== undefined) {
-      const fetchNewData = async () => {
-        try {
-          const { data }: any = await instance(`customers-by-company/${id}`);
-          setCustomerData(data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      fetchNewData();
-    }
-  }, [id]);
-
-  interface DataType {
-    no: number | string;
-    name: string;
-    id: number;
-    profession: string;
-    is_active: boolean;
-    key: React.Key;
-  }
-
-  const columns: ColumnsType<DataType> = [
-    {
-      title: "No",
-      dataIndex: "no",
-      key: "no",
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Role",
-      dataIndex: "profession",
-      key: "profession",
-    },
-    {
-      title: "Is Active",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (tag: boolean) => (
-        <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
-      ),
-      filters: [
-        {
-          text: "True",
-          value: true,
-        },
-        {
-          text: "False",
-          value: false,
-        },
-      ],
-      onFilter: (value: any, record: any) => {
-        return record.isActive === value;
-      },
-    },
-  ];
-  const [open, setOpen] = useState(false);
-  const showModal = () => {
-    setOpen(true);
-  };
   const ClickDelete = () => {
     const shouldDelete = window.confirm(
       "Вы уверены, что хотите удалить эту компанию?"
     );
     if (shouldDelete && id !== undefined) {
-      companyController.deleteCompanyController(id).then((data: any) => {
+      companyController.deleteCompanyController(id).then(() => {
         document.location.replace(`/#/companies`);
       });
     }
   };
+
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -182,19 +115,23 @@ const CompanyEdit = () => {
                               <Input />
                             </Form.Item>
                           </Col>
-                          <Col span={6}>
+                          {TeamData?.data && (
+                            <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
                               label="Team"
                               name="team_id"
                             >
                               <Select
-                                onChange={(value: any) => setTeamId(value)}
-                                options={TeamOption}
-                                value={teamId}
+                                options={TeamData?.data?.map((item) => ({
+                                  label: item?.name,
+                                  value: item?.id,
+                                }))}
                               />
                             </Form.Item>
                           </Col>
+                          )}
+                          
                         </Row>
                         <Row gutter={[16, 10]}>
                           <Col span={6}>
@@ -221,7 +158,7 @@ const CompanyEdit = () => {
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"
-                              style={{marginRight: 10}}
+                              style={{ marginRight: 10 }}
                               danger
                             >
                               Delete
@@ -232,7 +169,6 @@ const CompanyEdit = () => {
                               Submit
                             </Button>
                           )}
-                          
                         </Form.Item>
                       </Form>
                     </Space>
@@ -270,20 +206,47 @@ const CompanyEdit = () => {
                           },
                         };
                       }}
-                      dataSource={customerData?.map(
-                        (u: any, i: number): DataType => {
-                          const obj: DataType = {
-                            no: i + 1,
-                            id: u?.id,
-                            name: u?.name,
-                            is_active: u?.is_active,
-                            profession: u?.profession,
-                            key: u?.id,
-                          };
-                          return obj;
-                        }
-                      )}
-                      columns={columns}
+                      dataSource={customerData?.data?.map((u, i) => ({
+                        ...u,
+                        no: i + 1,
+                        key: u?.id,
+                      }))}
+                      columns={[
+                        {
+                          title: "No",
+                          dataIndex: "no",
+                        },
+                        {
+                          title: "Name",
+                          dataIndex: "name",
+                        },
+                        {
+                          title: "Role",
+                          dataIndex: "profession",
+                        },
+                        {
+                          title: "Is Active",
+                          dataIndex: "is_active",
+                          render: (tag: boolean) => (
+                            <Tag color={tag ? "geekblue" : "red"}>
+                              {tag ? "True" : "False"}
+                            </Tag>
+                          ),
+                          filters: [
+                            {
+                              text: "True",
+                              value: true,
+                            },
+                            {
+                              text: "False",
+                              value: false,
+                            },
+                          ],
+                          onFilter: (value: any, record: any) => {
+                            return record.isActive === value;
+                          },
+                        },
+                      ]}
                     />
                     {open && (
                       <AddDriver id={id} open={open} setOpen={setOpen} />

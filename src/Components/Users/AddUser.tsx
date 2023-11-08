@@ -1,11 +1,10 @@
 import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
 import { userController } from "../../API/LayoutApi/users";
 import { useTeamData } from "../../Hooks/Teams";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { message } from "antd";
-import axios from "axios";
-import instance from "../../API/api";
+import { useRoleData } from "../../Hooks/Role";
 
 const AddUser = ({
   open,
@@ -19,34 +18,10 @@ const AddUser = ({
   const handleCancel = () => {
     setOpen(!open);
   };
-  const [teamId, setTeamId] = useState<any>();
-  const TeamData = useTeamData(teamId);
-  const TeamOption: { label: string; value: any }[] | undefined =
-    TeamData?.data?.map((item) => ({
-      label: item?.name,
-      value: item?.id,
-    }));
+  const TeamData = useTeamData('');
 
-  const [roleId, setRoleId] = useState<any>();
-  const [roles, setRoles] = useState<any>([]);
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await instance("/users/roles/");
-        setRoles(response.data);
-      } catch (error) {
-        console.error("Произошла ошибка при загрузке данных:", error);
-      }
-    };
+  const roleData = useRoleData();
 
-    fetchRoles();
-  }, []);
-  
-  const RoleOption: { label: string; value: any }[] | undefined =
-    roles?.map((item: { name: string; id: string }) => ({
-      label: item?.name,
-      value: item?.id,
-    }));
   return (
     <div>
       <Modal
@@ -57,7 +32,7 @@ const AddUser = ({
         onCancel={handleCancel}
         onOk={() => {
           form.validateFields().then(async (values) => {
-            if (typeof values.groups === 'number') {
+            if (typeof values.groups === "number") {
               values.groups = [values.groups];
             }
             form.resetFields();
@@ -163,18 +138,18 @@ const AddUser = ({
             rules={[{ required: false }]}
           >
             <Select
-              onChange={(value: any) => setTeamId(value)}
-              options={TeamOption}
+              options={TeamData?.data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
             />
           </FormAnt.Item>
-          <FormAnt.Item
-            label="Role"
-            name="groups"
-            rules={[{ required: true }]}
-          >
+          <FormAnt.Item label="Role" name="groups" rules={[{ required: true }]}>
             <Select
-              onChange={(value: any) => setRoleId(value)}
-              options={RoleOption}
+              options={roleData?.data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
             />
           </FormAnt.Item>
           <FormAnt.Item

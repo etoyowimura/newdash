@@ -1,12 +1,6 @@
-import { Button, Modal, Space, Spin, Table, Tooltip } from "antd";
-import { useCompanyData } from "../../Hooks/Companies";
-import { useCustomerData } from "../../Hooks/Customers";
-import { useServiceData } from "../../Hooks/Services";
-import { useUserData } from "../../Hooks/Users";
-import { useTeamData } from "../../Hooks/Teams";
+import { Button, Modal, Space, Table, Tooltip } from "antd";
 import "../../App.css";
 import { useEffect, useState } from "react";
-import moment from "moment";
 import { taskController } from "../../API/LayoutApi/tasks";
 import { useNavigate } from "react-router-dom";
 import { TPagination } from "../../types/common/TPagination";
@@ -41,6 +35,7 @@ const TaskTable = ({
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TPagination<TTask[]>, unknown>>;
 }) => {
+  const moment = require('moment')
   const statusClick = (record: any) => {
     if (record.status === "New") {
       Modal.confirm({
@@ -98,7 +93,7 @@ const TaskTable = ({
     if (
       event.target.classList.contains("ant-table-cell") &&
       (record.in_charge_id === null ||
-        record.in_charge_id === +!!admin_id ||
+        (!!admin_id && record.in_charge_id === +admin_id) ||
         isSuper === "true")
     ) {
       navigate(`/${record.id}`);
@@ -126,7 +121,8 @@ const TaskTable = ({
           in_charge_name: (data.AdminData?.data || []).find(
             (admin) => admin.id === u.in_charge_id
           )?.username,
-          created: u?.created_at,
+          created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
+          key: u?.id
         }))}
         columns={[
           {
@@ -210,7 +206,7 @@ const TaskTable = ({
           },
           {
             title: "Created at",
-            dataIndex: "created_at",
+            dataIndex: "created",
             width: "12%",
           },
           {
@@ -234,7 +230,7 @@ const TaskTable = ({
                       )}
                       {record.status === "Checking" &&
                         !!admin_id &&
-                        record.in_charge_id == +admin_id && (
+                        record.in_charge_id === +admin_id && (
                           <Button
                             type="primary"
                             style={{ background: "#595959" }}

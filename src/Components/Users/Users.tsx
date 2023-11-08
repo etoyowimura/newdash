@@ -44,12 +44,6 @@ const User = () => {
           value={name}
           allowClear
         />
-        <Select
-          // options={
-            
-          // }
-        >
-        </Select>
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}

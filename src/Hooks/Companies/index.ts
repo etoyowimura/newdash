@@ -9,12 +9,10 @@ export const useCompanyData = ({name, page, is_active} : TCompanyGetParams) => {
   );
 };
 
-export const useCompanyOne = (
-  companyId: number | string | undefined
-): any => {
+export const useCompanyOne = (id: number | undefined) => {
   return useQuery(
-    [`company/${companyId || "all"}`, companyId],
-    () => companyController.companyOne(companyId),
+    [`company/${id}/`, id],
+    () => companyController.companyOne(id),
     { refetchOnWindowFocus: false }
   );
 };

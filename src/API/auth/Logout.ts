@@ -4,7 +4,7 @@ import {message} from "antd";
 
 export const LogoutApi = async () => {
     try {
-        const { data  } = await instance("auth/logout/", {
+        await instance("auth/logout/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });

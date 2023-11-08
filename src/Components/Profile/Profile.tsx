@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { TProfilePutParams, prof } from "../../API/LayoutApi/profile";
 import {
   Button,
@@ -14,19 +14,14 @@ import {
   Watermark,
 } from "antd";
 import TabPane from "antd/es/tabs/TabPane";
-import instance from "../../API/api";
-import moment from "moment";
 import { Link } from "react-router-dom";
-import { useMystatsData, useProfData } from "../../Hooks/Profile";
+import {
+  useMyHistoryData,
+  useMystatsData,
+  useProfData,
+} from "../../Hooks/Profile";
+
 const { Option } = Select;
-interface historySource {
-  no: number;
-  task: { id: number };
-  action: string;
-  description: string;
-  timestamp: string;
-  key: React.Key;
-}
 
 const Profile = () => {
   const { data, refetch } = useProfData();
@@ -34,59 +29,20 @@ const Profile = () => {
   const [range, setRange] = useState<any>(1);
 
   const onSubmit = async (value: TProfilePutParams) => {
-    await prof.profPatch(value)
-    refetch()
+    await prof.profPatch(value);
+    refetch();
   };
 
   const isSuper = localStorage.getItem("isSuperUser");
+  const moment = require("moment-timezone");
+  const nowUtcPlus5 = moment.tz("Asia/Tashkent");
+  const formattedTimeMinusFiveSeconds = nowUtcPlus5
+    .subtract(range, "days")
+    .format("YYYY-MM-DDTHH:mm:ss");
 
-  const [historyData, setHistoryData] = useState<any>();
-  useEffect(() => {
-    const fetchData = async () => {
-      const moment = require("moment-timezone");
-      const nowUtcPlus5 = moment.tz("Asia/Tashkent");
-      const formattedTimeMinusFiveSeconds = nowUtcPlus5
-        .subtract(range, "days")
-        .format("YYYY-MM-DDTHH:mm:ss");
-      try {
-        const { data }: any = await instance(
-          `my-task-history/?start_date=${formattedTimeMinusFiveSeconds}`
-        );
-        setHistoryData(data);
-      } catch (error) {}
-    };
-    fetchData();
-  }, [range]);
-
-  const columns: object[] = [
-    {
-      title: "No",
-      dataIndex: "no",
-      key: "no",
-      width: "5%",
-    },
-    {
-      title: "Task",
-      dataIndex: "task",
-      key: "task",
-      render: ({ id }: { id: number }) => <Link to={`/${id}`}>{id}</Link>,
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: "Timestamp",
-      dataIndex: "timestamp",
-      key: "timestamp",
-    },
-  ];
+  const historyData = useMyHistoryData({
+    start_date: formattedTimeMinusFiveSeconds,
+  });
 
   return (
     <div>
@@ -232,32 +188,53 @@ const Profile = () => {
                   <Option value="30">a month</Option>
                 </Select>
                 <Table
-                  dataSource={historyData?.map(
-                    (u: any, i: number): historySource => {
-                      let createCr = u.timestamp;
-                      const obj: historySource = {
-                        no: i + 1,
-                        task: { id: u.task },
-                        action: u?.action,
-                        description:
-                          isSuper === "false"
-                            ? "You finished this task and earned another 5 points!"
-                            : `You ${u?.description.slice(
-                                u?.description.indexOf(" ") + 1
-                              )}`,
-                        timestamp: createCr
-                          ? moment(createCr).format("DD.MM.YYYY, HH:mm")
-                          : "",
-                        key: u.id,
-                      };
-                      return obj;
-                    }
-                  )}
-                  columns={columns}
+                  dataSource={historyData?.data?.map((u, i) => ({
+                    no: i + 1,
+                    task: { id: u.task },
+                    action: u?.action,
+                    description:
+                      isSuper === "false"
+                        ? "You finished this task and earned another 5 points!"
+                        : `You ${u?.description.slice(
+                            u?.description.indexOf(" ") + 1
+                          )}`,
+                    timestamp: u.timestamp
+                      ? moment(u.timestamp).format("DD.MM.YYYY, HH:mm")
+                      : "",
+                    key: u.id,
+                  }))}
+                  columns={[
+                    {
+                      title: "No",
+                      dataIndex: "no",
+                      key: "no",
+                      width: "5%",
+                    },
+                    {
+                      title: "Task",
+                      dataIndex: "task",
+                      key: "task",
+                      render: ({ id }: { id: number }) => (
+                        <Link to={`/${id}`}>{id}</Link>
+                      ),
+                    },
+                    {
+                      title: "Action",
+                      dataIndex: "action",
+                      key: "action",
+                    },
+                    {
+                      title: "Description",
+                      dataIndex: "description",
+                      key: "description",
+                    },
+                    {
+                      title: "Timestamp",
+                      dataIndex: "timestamp",
+                      key: "timestamp",
+                    },
+                  ]}
                 />
-                {/* {isSuper === "false" && (
-                    <p>total points: {total?.total_points}</p>
-                  )} */}
               </TabPane>
             </Tabs>
           </Space>

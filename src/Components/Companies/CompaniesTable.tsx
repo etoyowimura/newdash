@@ -5,7 +5,6 @@ import { SyncOutlined, EyeOutlined } from "@ant-design/icons";
 import { companyController } from "../../API/LayoutApi/companies";
 import { useTeamData } from "../../Hooks/Teams";
 import { TCompany } from "../../types/Company/TCompany";
-import { TPagination } from "../../types/common/TPagination";
 const isSuper = localStorage.getItem("isSuperUser");
 
 function CompanyTable({
@@ -15,6 +14,7 @@ function CompanyTable({
   data?: TCompany[] | undefined;
   isLoading?: boolean;
 }) {
+  const moment = require('moment')
   const [loadings, setLoadings] = useState<boolean[]>([]);
   function getStatusClassName() {
     if (isSuper === "false") {
@@ -31,13 +31,10 @@ function CompanyTable({
         dataSource={data?.map((u, i) => ({
           ...u,
           no: i + 1,
-          team: TeamData?.data?.map((team) => {
-            if (team.id === u?.team_id) {
-              return team.name;
-            }
-          }),
+          team: TeamData?.data?.find((team) => team.id === u?.team_id)?.name || "",
+          created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
           key: u?.id,
-          action: u,
+          action: {...u},
         }))}
         loading={isLoading}
         columns={[
@@ -72,7 +69,7 @@ function CompanyTable({
           },
           {
             title: "Created at",
-            dataIndex: "created_at",
+            dataIndex: "created",
           },
           {
             title: "Actions",
@@ -85,7 +82,7 @@ function CompanyTable({
                   return newLoadings;
                 });
                 if (api && api !== "") {
-                  companyController.SyncCompany(index, api);
+                  companyController.SyncCompany(index);
                 } else {
                   message.error({
                     content: "This company doesn't have an api key",

@@ -1,10 +1,18 @@
-import { TMystats, TProfile } from "../../types/Profile/TProfile";
+import {
+  TMyTaskHistory,
+  TMystats,
+  TProfile,
+} from "../../types/Profile/TProfile";
 import instance from "../api";
 
 export type TProfilePutParams = {
   first_name?: string;
   last_name?: string;
   username?: string;
+};
+export type TMyTaskHistoryGetParams = {
+  start_date?: string;
+  end_date?: string;
 };
 
 export const prof = {
@@ -17,10 +25,18 @@ export const prof = {
     const { data } = await instance.get<TProfile>(`users/my-profile/`);
     return data;
   },
-  // const { data }: { data: any } = await instance(`users/my-profile/`, {
-  //   method: "PUT",
-  //   data: profData,
-  // })
+
+  async myTaskHistory(filterObject: TMyTaskHistoryGetParams) {
+    const params = { ...filterObject };
+
+    if (!!filterObject.start_date) params.start_date = filterObject.start_date;
+    if (!!filterObject.end_date) params.end_date = filterObject.end_date;
+    const { data } = await instance.get<TMyTaskHistory[]>(`my-task-history/`, {
+      params,
+    });
+    return data;
+  },
+  
   async profPatch(filterObject: TProfilePutParams) {
     const params = { ...filterObject };
 
@@ -29,7 +45,8 @@ export const prof = {
     params.username = filterObject.username || params.username;
 
     const { data } = await instance.put<TProfilePutParams>(
-      `users/my-profile/`, {...params}
+      `users/my-profile/`,
+      { ...params }
     );
     return data;
   },

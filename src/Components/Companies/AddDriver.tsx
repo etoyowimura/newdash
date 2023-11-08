@@ -17,7 +17,7 @@ const AddDriver = ({
     setOpen(!open);
   };
   
-  const comvalue = useCompanyOne(id);
+  const companyData = useCompanyOne(id);
   
   return (
     <div>
@@ -71,7 +71,7 @@ const AddDriver = ({
               { required: false, message: "Please input company!" },
             ]}
           >
-           {comvalue !== undefined && <Input defaultValue={comvalue.data.name} readOnly/>}
+           {companyData !== undefined && <Input defaultValue={companyData?.data?.name} readOnly/>}
           </FormAnt.Item>
         </FormAnt>
       </Modal>

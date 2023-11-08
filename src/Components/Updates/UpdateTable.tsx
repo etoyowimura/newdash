@@ -5,9 +5,14 @@ import { useCustomerData } from "../../Hooks/Customers";
 import { useUserData } from "../../Hooks/Users";
 import { updateController } from "../../API/LayoutApi/update";
 import { CloseCircleOutlined } from "@ant-design/icons";
-import {BsPinAngle} from "react-icons/bs"
-import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
+import { BsPinAngle } from "react-icons/bs";
+import {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+} from "react-query";
 import { TUpdate } from "../../types/Update/TUpdate";
+import { useEffect, useState } from "react";
 
 const UpdateTable = ({
   data = [],
@@ -16,9 +21,10 @@ const UpdateTable = ({
 }: {
   data: TUpdate[] | undefined;
   isLoading?: boolean;
-  refetch: <TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined) => Promise<QueryObserverResult<TUpdate[], unknown>>
+  refetch: <TPageData>(
+    options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
+  ) => Promise<QueryObserverResult<TUpdate[], unknown>>;
 }) => {
-
   const rowClassName = (record: TUpdate) => {
     if (record.is_pinned === true) {
       return "new-status-row";
@@ -26,48 +32,59 @@ const UpdateTable = ({
     return "";
   };
 
-  const CompanyData = useCompanyData({name: undefined, page: undefined, is_active: undefined});
-  const CustomerData = useCustomerData({name: undefined, page: undefined, is_active: undefined});
-  const AdminData = useUserData({name: undefined, team: undefined});
+  const CompanyData = useCompanyData({});
+  const CustomerData = useCustomerData({});
+  const AdminData = useUserData({});
 
-  const Row = (record: TUpdate) => {
-      let isTextSelected = false;
-      document.addEventListener("selectionchange", () => {
-        const selection = window.getSelection();
-        if (selection !== null && selection.toString() !== "") {
-          isTextSelected = true;
-        } else {
-          isTextSelected = false;
-        }
-      });
-      return {
-        onClick: (event: MouseEvent) => {
-          if (isTextSelected) {
-            return 
-          }
-          if (event.target instanceof HTMLElement) {
-            if (event.target.classList.contains("ant-table-cell")) {
-              document.location.replace(`/#/updates/${record.id}`);
-            }
-          }
-        },
-      };
-  }
+  const [isTextSelected, setIsTextSelected] = useState(false);
+
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      setIsTextSelected(selection !== null && selection.toString() !== "");
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, []);
+
+  const Row = (record: TUpdate, event: any) => {
+    if (isTextSelected) {
+      return;
+    }
+    if (event.target.classList.contains("ant-table-cell")) {
+      document.location.replace(`/#/updates/${record.id}`);
+    }
+  };
 
   return (
     <div>
       <Table
         onRow={(record) => ({
-          onClick: (event: React.MouseEvent) => Row(record),
+          onClick: (event) => Row(record, event),
         })}
         dataSource={data?.map((u, i) => ({
           no: i + 1,
           ...u,
-          company_name: CompanyData?.data?.find((company: any) => company.id === u.company_id)?.name,
-          customer_name: CustomerData?.data?.find((customer: any) => customer.id === u.customer_id)?.name,
-          in_charge_name: AdminData?.data?.find((admin: any) => admin.id === u.provider_id)?.username,
-          executor_name: AdminData?.data?.find((admin: any) => admin.id === u.executor_id)?.username,
-          action: {...u},
+          company_name: CompanyData?.data?.find(
+            (company: any) => company.id === u.company_id
+          )?.name,
+          customer_name: CustomerData?.data?.find(
+            (customer: any) => customer.id === u.customer_id
+          )?.name,
+          in_charge_name: AdminData?.data?.find(
+            (admin: any) => admin.id === u.provider_id
+          )?.username,
+          executor_name: AdminData?.data?.find(
+            (admin: any) => admin.id === u.executor_id
+          )?.username,
+          created: moment(u?.created_at, "YYYY-MM-DD HH:mm:ss").format(
+            "DD.MM.YYYY HH:mm"
+          ),
+          action: { ...u },
         }))}
         columns={[
           {
@@ -130,7 +147,9 @@ const UpdateTable = ({
               showTitle: false,
             },
             render: (status: string) => (
-              <span className={`status-${status.toLowerCase().replace(/\s/g, "-")}`}>
+              <span
+                className={`status-${status.toLowerCase().replace(/\s/g, "-")}`}
+              >
                 {status}
               </span>
             ),
@@ -163,7 +182,7 @@ const UpdateTable = ({
           },
           {
             title: "Created at",
-            dataIndex: "created_at",
+            dataIndex: "created",
             ellipsis: {
               showTitle: false,
             },
@@ -181,44 +200,46 @@ const UpdateTable = ({
             render: (record: TUpdate) => {
               return (
                 <div className="notedit">
-                  {record.status !== 'Done' && (<Space>
-                    {record.is_pinned ? (
-                      <Button
-                        type="dashed"
-                        size="small"
-                        onClick={(e) => {
-                          const updateData = {
-                            is_pinned: false,
-                          }
-                          updateController
-                            .updatePatch(updateData , record.id)
-                            .then(() => {
-                              refetch();
-                            });
-                        }}
-                      >
-                        <CloseCircleOutlined />
-                      </Button>
-                    ) : (
-                      <Button
-                        type="primary"
-                        size="small"
-                        style={{paddingTop: 2}}
-                        onClick={(e) => {
-                          const updateData = {
-                            is_pinned: true,
-                          }
-                          updateController
-                            .updatePatch(updateData , record.id)
-                            .then(() => {
-                              refetch();
-                            });
-                        }}
-                      >
-                        <BsPinAngle />
-                      </Button>
-                    )}
-                  </Space>)}
+                  {record.status !== "Done" && (
+                    <Space>
+                      {record.is_pinned ? (
+                        <Button
+                          type="dashed"
+                          size="small"
+                          onClick={(e) => {
+                            const updateData = {
+                              is_pinned: false,
+                            };
+                            updateController
+                              .updatePatch(updateData, record.id)
+                              .then(() => {
+                                refetch();
+                              });
+                          }}
+                        >
+                          <CloseCircleOutlined />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="primary"
+                          size="small"
+                          style={{ paddingTop: 2 }}
+                          onClick={(e) => {
+                            const updateData = {
+                              is_pinned: true,
+                            };
+                            updateController
+                              .updatePatch(updateData, record.id)
+                              .then(() => {
+                                refetch();
+                              });
+                          }}
+                        >
+                          <BsPinAngle />
+                        </Button>
+                      )}
+                    </Space>
+                  )}
                 </div>
               );
             },

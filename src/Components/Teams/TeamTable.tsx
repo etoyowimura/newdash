@@ -1,6 +1,4 @@
-import React from "react";
-import { Spin, Table, Tag } from "antd";
-import moment from "moment";
+import { Table, Tag } from "antd";
 import { TTeam } from "../../types/Team/TTeam";
 import {
   QueryObserverResult,
@@ -19,7 +17,7 @@ const TeamTable = ({
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TTeam[], unknown>>;
 }) => {
-
+  const moment = require('moment')
     
   return (
     <Table
@@ -35,6 +33,7 @@ const TeamTable = ({
         ...u,
         no: i + 1,
         action: { id: u.id },
+        created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
         key: u.id,
       }))}
       columns={[
@@ -49,7 +48,7 @@ const TeamTable = ({
         },
         {
           title: "Created at",
-          dataIndex: "created_at",
+          dataIndex: "created",
         },
         {
           title: "Is Active",

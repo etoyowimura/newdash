@@ -1,9 +1,10 @@
 import { Input, Modal, Form as FormAnt, Select } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
-import { useEffect, useState } from "react";
-import instance from "../../API/api";
+import { useState } from "react";
 
-const AddCustomer = ({  
+import { useCompanyData } from "../../Hooks/Companies";
+
+const AddCustomer = ({
   open,
   setOpen,
 }: {
@@ -15,39 +16,11 @@ const AddCustomer = ({
   const handleCancel = () => {
     setOpen(!open);
   };
-  type Data = {
-    data?: {
-      data: Array<any>;
-      count: number | string;
-    };
-    isLoading?: boolean;
-    refetch?: any;
-    isFetching?: boolean;
-  };
-  const [companyName, setCompanyName] = useState<string>('');
-  const [options, setOptions] = useState<any>();
-  const [characters, setCharacters] = useState<any>([])
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data }: Data = await instance(`companies/?name=${companyName}`)
-        setCharacters(data)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    fetchData()
-  }, [companyName])
-  useEffect(() => {
-    const CompanyOption: { label: string; value: any }[] | undefined =
-      characters?.map(
-        (item: { name: string; id: string }) => ({
-          label: item?.name,
-          value: item?.id,
-        })
-      );
-    setOptions(CompanyOption)
-  }, [characters])
+
+  const [companyName, setCompanyName] = useState<string>("");
+  const { data } = useCompanyData({ name: companyName });
+  
+
   return (
     <div>
       <Modal
@@ -57,14 +30,12 @@ const AddCustomer = ({
         cancelText="Cancel"
         onCancel={handleCancel}
         onOk={() => {
-          form
-            .validateFields()
-            .then(async (values) => {
-              form.resetFields();
-              await customerController.addCustomerController(values);
-              setOpen(!open);
-              window.location.reload();
-            })
+          form.validateFields().then(async (values) => {
+            form.resetFields();
+            await customerController.addCustomerController(values);
+            setOpen(!open);
+            window.location.reload();
+          });
         }}
       >
         <FormAnt
@@ -76,33 +47,30 @@ const AddCustomer = ({
           <FormAnt.Item
             label="Name"
             name="name"
-            rules={[
-              { required: true, message: "Please input Name!" },
-            ]}
+            rules={[{ required: true, message: "Please input Name!" }]}
           >
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
             label="Role"
             name="profession"
-            rules={[
-              { required: false, message: "Please input Role!" },
-            ]}
-          > 
-            <Input defaultValue='driver' />
+            rules={[{ required: false, message: "Please input Role!" }]}
+          >
+            <Input defaultValue="driver" />
           </FormAnt.Item>
           <FormAnt.Item
             label="Company"
             name="company_id"
-            rules={[
-              { required: false, message: "Please input company!" },
-            ]}
+            rules={[{ required: false, message: "Please input company!" }]}
           >
             <Select
               showSearch
               placeholder="Search Company"
               onSearch={(value: any) => setCompanyName(value)}
-              options={options}
+              options={data?.map((item) => ({
+                label: item?.name,
+                value: item?.id,
+              }))}
               value={companyName}
               filterOption={false}
               autoClearSearchValue={false}

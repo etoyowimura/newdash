@@ -1,99 +1,85 @@
 import { TCompany } from "../../types/Company/TCompany";
-import { TPagination } from "../../types/common/TPagination";
 import instance from "../api";
 import { message } from "antd";
 
 export type TCompanyGetParams = {
-  name?: string,
-  page?: string | number,
+  name?: string;
+  page?: string | number;
   is_active?: boolean;
-}
+};
+export type TCompanyPutParams = {
+  name?: string;
+  owner?: string;
+  is_active?: boolean;
+};
+export type TCompanyPostParams = {
+  name?: string;
+  team_id?: number;
+  owner?: string;
+  is_active?: boolean;
+  usdot?: string;
+  api_key?: string;
+};
 
 export const companyController = {
   async read(filterObject: TCompanyGetParams) {
-    const params = {...filterObject};
+    const params = { ...filterObject };
 
     if (!!filterObject.name) params.name = filterObject.name;
     if (!!filterObject.is_active) params.is_active = filterObject.is_active;
     if (!!filterObject.page) params.page = filterObject.page;
 
-    const { data } = await instance.get<TCompany[]>(
-      `companies/`, {params}
-    );
-   
-    return  data;
-  },
+    const { data } = await instance.get<TCompany[]>(`companies/`, { params });
 
-  async companyOne(Id: string | number | undefined) {
-    const { data }: { data: any } = await instance(`company/${Id}/`);
     return data;
   },
 
-  async companyPatch(companyData: any, company_id: string) {
-    const key = "updatable";
-    message.loading({ content: "Loading...", key });
-    const { data }: { data: any } = await instance(`company/${company_id}/`, {
-      method: "PUT",
-      data: companyData,
-    }).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Loaded!", key, duration: 2 });
-      }, 1000);
+  async companyOne(Id: number | undefined) {
+    if(Id){
+      const { data } = await instance.get<TCompany>(`company/${Id}/`);
+      return data;
+    }
+  },
+
+  async companyPatch(obj: TCompanyPutParams, id: string) {
+    const { data }: { data: any } = await instance.put<TCompany>(`company/${id}/`, obj).then((u) => {
       return u;
     });
     return data;
   },
 
-  async addCompanyController(companyId: any) {
-    message.loading({ content: "Loading...", key: companyId });
-    const { data } = await instance("company/", {
-      method: "POST",
-      data: {
-        ...companyId,
-      },
-    }).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Loaded!", key: companyId, duration: 2 });
-      }, 1000);
+  async addCompanyController(obj: TCompanyPostParams) {
+    const { data } = await instance.post<TCompany>("company/", obj).then((u) => {
       return u;
     });
     return data;
   },
 
-  async SyncCompany(companyId: any, api: any) {
-    message.loading({ content: "Loading...", key: companyId });
+  async SyncCompany(id: number) {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`company-sync/${companyId}/`, {
-        method: "POST",
-        data: {
-          ...companyId,
-        },
-      }).then((u) => {
-        setTimeout(() => {
-          message.success({content: u?.data.message, key: companyId, duration: 2});
-        }, 1000);
+      const { data } = await instance.post(`company-sync/${id}/`).then((u) => {
         return u;
       });
       res = data;
-    } catch (err:any) {
-      error = "Oops something went wrong!";
-      message.error({content: err.response.data.message, key: companyId, duration: 2});
+    } catch (err: any) {
     }
     return { data: res, error };
   },
 
-  async deleteCompanyController(company_id: string) {
-    message.loading({ content: "Loading...", key: company_id });
+  async deleteCompanyController(id: string) {
+    message.loading({ content: "Loading..." });
     let res;
     let error;
     try {
-      const { data } = await instance(`company/${company_id}/`, {
-        method: "DELETE",
-      }).then((u) => {
+      const { data } = await instance.delete(`company/${id}/`).then((u) => {
         setTimeout(() => {
-          message.success({ content: "Deleted!", key: company_id, duration: 2 });
+          message.success({
+            content: "Deleted!",
+            key: id,
+            duration: 2,
+          });
         }, 1000);
         return u;
       });
@@ -102,5 +88,5 @@ export const companyController = {
       error = "Oops something went wrong!";
     }
     return { data: res, error };
-  }
+  },
 };

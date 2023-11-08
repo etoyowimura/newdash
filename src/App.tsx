@@ -8,7 +8,7 @@ import {
   Space,
 } from "antd";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { allMenu, items } from "./Utils/sidebar";
+import { allMenu, mainItems, superItems } from "./Utils/sidebar";
 import Login from "./Auth/Login";
 import Notfound from "./Utils/Notfound";
 import { LogoutApi } from "./API/auth/Logout";
@@ -22,7 +22,7 @@ const userObject = JSON.parse(userJSON);
 
 const App: React.FC = () => {
   const isAuthenticated = localStorage.getItem("token") as string;
-  const [authorized, setAuthorized] = useState<string | null>(isAuthenticated);
+  const authorized = isAuthenticated;
   const [collapsed, setCollapsed] = useState<any>(
     localStorage.getItem("collapsed") === "true" ? true : false
   );
@@ -269,7 +269,10 @@ const App: React.FC = () => {
                   }}
                 >
                   <Routes>
-                    {items.map((u: any) => (
+                    {mainItems && mainItems.map((u) => (
+                      <Route key={u.key} path={u.path} element={u.component} />
+                    ))}
+                    {superItems && superItems.map((u) => (
                       <Route key={u.key} path={u.path} element={u.component} />
                     ))}
                     <Route path="*" element={<Notfound />} />

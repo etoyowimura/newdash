@@ -1,7 +1,6 @@
-import { RowProps, Table } from "antd";
+import { Table } from "antd";
 import { useCompanyData } from "../../Hooks/Companies";
 import { TCustomer } from "../../types/Customer/TCustomer";
-import { TPagination } from "../../types/common/TPagination";
 
 const isSuper = localStorage.getItem("isSuperUser");
 
@@ -38,11 +37,7 @@ function CustomerTable({
         dataSource={data?.map((u, i) => ({
           ...u,
           no: i + 1,
-          company_id: CompanyData?.data?.map((company: any) => {
-            if (company.id === u?.company_id) {
-              return company.name;
-            }
-          }),
+          company_id: CompanyData?.data?.find((company: any) => company.id === u?.company_id)?.name || "",
         }))}
         columns={[
           {

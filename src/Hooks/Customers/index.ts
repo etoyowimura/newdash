@@ -1,23 +1,25 @@
 import { useQuery } from "react-query";
-import { TCustomerGetParams, customerController } from "../../API/LayoutApi/customers";
+import { TCustomerByCompanyGetParams, TCustomerGetParams, customerController } from "../../API/LayoutApi/customers";
 
 export const useCustomerData = ({name, page, is_active} : TCustomerGetParams) => {
   return useQuery(
-    // queryKey: ['customers/', name, page, is_active],
-    // queryFn: () => customerController.read({
-    //   name: name,
-    //   page: page,
-    //   is_active: is_active
-    // })
     [`customers/`, name, page, is_active],
     () => customerController.read({name: name, page: page, is_active: is_active}),
     { refetchOnWindowFocus: false }
   );
 };
 
-export const useCustomerOne = (Id: string): any => {
+export const useCustomerByComanyData = ({name, id} : TCustomerByCompanyGetParams) => {
   return useQuery(
-    [`customer/${Id || "all"}`, Id],
+    [`customers-by-company/${id}`, name],
+    () => customerController.customerByCompany(id, name),
+    { refetchOnWindowFocus: false }
+  );
+};
+
+export const useCustomerOne = (Id: number | undefined) => {
+  return useQuery(
+    [`customer/${Id}/`, Id],
     () => customerController.customerOne(Id),
     { refetchOnWindowFocus: false }
   );

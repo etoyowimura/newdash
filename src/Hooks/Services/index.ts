@@ -9,9 +9,7 @@ export const useServiceData = () => {
   );
 };
 
-export const useServiceOne = (
-  serviceId: number | string | undefined
-): any => {
+export const useServiceOne = (serviceId: number | undefined) => {
   return useQuery(
     [`service/${serviceId || "all"}`, serviceId],
     () => serviceController.serviceOne(serviceId),

@@ -13,3 +13,12 @@ export type TMystats = {
     last_month_points:    number;
     current_month_points: number;
 }
+
+export type TMyTaskHistory = {
+    id:          number;
+    task:        number;
+    user:        string;
+    action:      string;
+    description: string;
+    timestamp:   Date;
+}

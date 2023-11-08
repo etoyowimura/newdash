@@ -1,8 +1,17 @@
 import { MenuProps } from "antd";
 import { Link } from "react-router-dom";
-import { BankOutlined, DownSquareOutlined, CustomerServiceOutlined, FileDoneOutlined, TeamOutlined, BarChartOutlined, AuditOutlined, MehOutlined } from '@ant-design/icons';
+import {
+  BankOutlined,
+  DownSquareOutlined,
+  CustomerServiceOutlined,
+  FileDoneOutlined,
+  TeamOutlined,
+  BarChartOutlined,
+  AuditOutlined,
+  MehOutlined,
+} from "@ant-design/icons";
 import Company from "../Components/Companies/Companies";
-import CompanyEdit from '../Components/Companies/CompaniesEdit';
+import CompanyEdit from "../Components/Companies/CompaniesEdit";
 import Customer from "../Components/Customers/Customers";
 import CustomerEdit from "../Components/Customers/CustomersEdit";
 import Service from "../Components/Services/Services";
@@ -19,7 +28,6 @@ import Profile from "../Components/Profile/Profile";
 import Update from "../Components/Updates/Update";
 import UpdateEdit from "../Components/Updates/UpdateEdit";
 
-
 type MenuItem = Required<MenuProps>["items"][number];
 
 function getItem(
@@ -35,25 +43,51 @@ function getItem(
     label,
   } as MenuItem;
 }
-const isSuperUser = localStorage.getItem('isSuperUser');
+const isSuperUser = localStorage.getItem("isSuperUser");
 
 export const allMenu: MenuItem[] = [
-  getItem(<Link to="/">Tasks</Link>, "/", <FileDoneOutlined />),  
-  getItem(<Link to="companies/">Companies</Link>, "companies/", <BankOutlined />),
-  getItem(<Link to="customers/">Customers</Link>, "customers/", <AuditOutlined />),
-  getItem(<Link to="services/">Services</Link>, "services/", <CustomerServiceOutlined />),
+  getItem(<Link to="/">Tasks</Link>, "/", <FileDoneOutlined />),
+  getItem(
+    <Link to="companies/">Companies</Link>,
+    "companies/",
+    <BankOutlined />
+  ),
+  getItem(
+    <Link to="customers/">Customers</Link>,
+    "customers/",
+    <AuditOutlined />
+  ),
+  getItem(
+    <Link to="services/">Services</Link>,
+    "services/",
+    <CustomerServiceOutlined />
+  ),
 ];
 
-if (isSuperUser !== 'false') {
-  allMenu.push(getItem(<Link to="teams/">Teams</Link>, "teams/", <TeamOutlined />),
-  getItem(<Link to="stats/">Statistics</Link>, "stats/", <BarChartOutlined />),
-  getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />),
-  getItem(<Link to="updates/">Updates</Link>, "updates/", <DownSquareOutlined />)
-  )
+if (isSuperUser !== "false") {
+  allMenu.push(
+    getItem(<Link to="teams/">Teams</Link>, "teams/", <TeamOutlined />),
+    getItem(
+      <Link to="stats/">Statistics</Link>,
+      "stats/",
+      <BarChartOutlined />
+    ),
+    getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />),
+    getItem(
+      <Link to="updates/">Updates</Link>,
+      "updates/",
+      <DownSquareOutlined />
+    )
+  );
 }
 
+type TItems = {
+  path: string;
+  component: JSX.Element;
+  key: string;
+};
 
-export const items: Array<any> = [
+export const mainItems: TItems[] = [
   {
     path: "/companies/",
     component: <Company />,
@@ -62,7 +96,7 @@ export const items: Array<any> = [
   {
     path: "/companies/:id",
     component: <CompanyEdit />,
-    key: "/companies/:id",
+    key: "/company/:id",
   },
   {
     path: "/customers/",
@@ -72,7 +106,7 @@ export const items: Array<any> = [
   {
     path: "/customers/:id/",
     component: <CustomerEdit />,
-    key: "/cusotmers/:id/",
+    key: "/cusotmer/:id/",
   },
   {
     path: "/services/",
@@ -82,20 +116,22 @@ export const items: Array<any> = [
   {
     path: "/services/:id/",
     component: <ServiceEdit />,
-    key: "/services/:id/",
+    key: "/service/:id/",
   },
   {
     path: "/",
     component: <Task />,
-    key: "/",
+    key: "tasks",
   },
   {
     path: "/:id/",
     component: <TaskEdit />,
-    key: "/:id/",
+    key: "task/:id/",
   },
-  
-  isSuperUser !== 'false' && {
+];
+
+export const superItems: TItems[] = [
+  {
     path: "/teams/",
     component: <Team />,
     key: "/teams/",
@@ -103,9 +139,9 @@ export const items: Array<any> = [
   {
     path: "/teams/:id/",
     component: <TeamEdit />,
-    key: "/teams/:id/",
+    key: "/team/:id/",
   },
-  isSuperUser !== 'false' && {
+  {
     path: "/users/",
     component: <User />,
     key: "/users/",
@@ -113,9 +149,9 @@ export const items: Array<any> = [
   {
     path: "/users/:id/",
     component: <UserEdit />,
-    key: "/users/:id/",
+    key: "/user/:id/",
   },
-  isSuperUser !== 'false' && {
+  {
     path: "/stats/",
     component: <Stat />,
     key: "/stats/",
@@ -125,7 +161,7 @@ export const items: Array<any> = [
     component: <Profile />,
     key: "/profile/",
   },
-  isSuperUser !== 'false' && {
+  {
     path: "/updates/",
     component: <Update />,
     key: "/updates/",
@@ -133,6 +169,6 @@ export const items: Array<any> = [
   {
     path: "/updates/:id/",
     component: <UpdateEdit />,
-    key: "/updates/:id/",
+    key: "/update/:id/",
   },
 ];

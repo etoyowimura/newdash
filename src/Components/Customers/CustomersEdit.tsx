@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomerOne } from "../../Hooks/Customers";
 import {
@@ -11,12 +10,11 @@ import {
   Col,
   Input,
   Button,
-  Switch,
 } from "antd";
 import { customerController } from "../../API/LayoutApi/customers";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-import { companyController } from "../../API/LayoutApi/companies";
+import { useCompanyOne } from "../../Hooks/Companies";
 
 const TabPane = Tabs.TabPane;
 
@@ -25,47 +23,19 @@ type params = {
 };
 const isSuper = localStorage.getItem("isSuperUser");
 
-type MyObjectType = {
-  [key: string | number]: any;
-};
 const CustomerEdit = () => {
-  
-  
   const { id } = useParams<params>();
-  const { data, refetch, status }: MyObjectType = useCustomerOne(id);
+  const { data, refetch, status } = useCustomerOne(id);
   let navigate = useNavigate();
   const onSubmit = async (value: any) => {
     await customerController.customerPatch(value, id);
     refetch();
-    document.location.replace('/#/customers')
+    window.location.replace('/#/customers/')
   };
 
-  
+  const companyData = useCompanyOne(data?.id);
+  console.log(companyData);
 
-  const [companyValue, setCompanyValue] = useState<any>();
-  const [companyData, setCompanyData] = useState<MyObjectType>();
-  const [companyId, setCompanyId] = useState<any>(null);
-  useEffect(() => {
-    if (data) {
-      if (data.company_id === null) {
-        setCompanyId(null);
-      }
-      const companyIdFromData = data.company_id;
-      setCompanyId(companyIdFromData);
-    }
-  }, [data]);
-  useEffect(() => {
-    if (companyId !== null) {
-      companyController.companyOne(companyId).then((CompanyData) => {
-        setCompanyData(CompanyData);
-      });
-    }
-  }, [companyId]);
-  useEffect(() => {
-    if (companyData && companyData.name) {
-      setCompanyValue(companyData.name);
-    }
-  }, [companyData]);
   const ClickDelete = () => {
     const shouldDelete = window.confirm(
       "Вы уверены, что хотите удалить этот customer?"
@@ -112,7 +82,7 @@ const CustomerEdit = () => {
                         initialValues={{ ...data }}
                         onFinish={onSubmit}
                         autoComplete="off"
-                      > 
+                      >
                         <Row gutter={[16, 10]}>
                           <Col span={6}>
                             <Form.Item
@@ -133,27 +103,24 @@ const CustomerEdit = () => {
                             </Form.Item>
                           </Col>
                         </Row>
-                        <Row gutter={[16, 10]}>
+                        {companyData?.data && (
+                          <Row gutter={[16, 10]}>
                           <Col span={6}>
-                          <Form.Item
-                                  wrapperCol={{ span: "100%" }}
-                                  label="Company"
-                                >
-                                  {companyValue !== undefined && (
-                                    <Input
-                                      defaultValue={companyValue}
-                                      readOnly
-                                    />
-                                  )}
-                                </Form.Item>
+                            <Form.Item
+                              wrapperCol={{ span: "100%" }}
+                              label="Company"
+                            >
+                              <Input defaultValue={companyData?.data?.name} readOnly />
+                            </Form.Item>
                           </Col>
                         </Row>
+                        )}
                         <Form.Item>
-                        {isSuper === "true" && (
+                          {isSuper === "true" && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"
-                              style={{marginRight: 10}}
+                              style={{ marginRight: 10 }}
                               danger
                             >
                               Delete

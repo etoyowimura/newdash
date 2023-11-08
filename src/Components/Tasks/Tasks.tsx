@@ -4,7 +4,7 @@ import { Button, Input, Select, Space, message } from "antd";
 import TaskTable from "./TaskTable";
 import Search from "antd/es/input/Search";
 import { useTeamData } from "../../Hooks/Teams";
-import { StepForwardOutlined, StepBackwardOutlined } from "@ant-design/icons";
+import { StepForwardOutlined, StepBackwardOutlined, RedoOutlined } from "@ant-design/icons";
 import { useTasks } from "../../Hooks/Tasks";
 import { TTask } from "../../types/Tasks/TTasks";
 import { useCompanyData } from "../../Hooks/Companies";
@@ -33,7 +33,7 @@ const Task = () => {
   const CustomerData = useCustomerData({});
   const AdminData = useUserData({});
   const ServiceData = useServiceData();
-  
+
   useEffect(() => {
     let reconnectingTimeout: NodeJS.Timeout | null = null;
 
@@ -77,18 +77,19 @@ const Task = () => {
   let taskSocket: WebSocket;
   interface newData {
     type: string;
-    task: TTask
+    task: TTask;
   }
+
   useEffect(() => {
     const connect = async () => {
       try {
         if (!taskSocket || taskSocket.readyState === WebSocket.CLOSED) {
-          taskSocket = new WebSocket(
-            `ws://10.10.10.45:8000/tasks/?token=${token}`
-          );
           // taskSocket = new WebSocket(
-          //   `wss://api.tteld.co/tasks/?token=${token}`
+          //   `ws://10.10.10.45:8000/tasks/?token=${token}`
           // );
+          taskSocket = new WebSocket(
+            `wss://api.tteld.co/tasks/?token=${token}`
+          );
 
           taskSocket.addEventListener("open", (event) => {
             console.log("open");
@@ -99,12 +100,13 @@ const Task = () => {
               if (prev && prev?.length >= 15) {
                 prev?.pop();
               }
-            
+
               if (newData.type === "task_create") {
                 return [newData.task, ...(prev || [])];
               } else if (newData.type === "task_update") {
                 if (isSuper === "true") {
-                  const updatedData = prev?.filter((b: TTask) => b.id !== newData.task.id) || [];
+                  const updatedData =
+                    prev?.filter((b: TTask) => b.id !== newData.task.id) || [];
                   const data: TTask[] = [newData.task, ...updatedData];
                   data.sort((a: TTask, b: TTask) => {
                     if (a.status === "New" && b.status === "New") {
@@ -126,7 +128,9 @@ const Task = () => {
                   return data;
                 }
               } else if (newData.type === "task_delete") {
-                const data = (prev || []).filter((b: TTask) => b.id !== newData.task.id);
+                const data = (prev || []).filter(
+                  (b: TTask) => b.id !== newData.task.id
+                );
                 return data;
               }
               return prev;
@@ -248,8 +252,16 @@ const Task = () => {
         </div>
         <Button
           type="primary"
-          style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={"middle"}
+          style={{padding: '4px 8px'}}
+          onClick={() => {refetch()}}
+        >
+          <RedoOutlined />
+        </Button>
+        <Button
+          type="primary"
+          style={{ marginLeft: 15 }}
+          size={"middle"}
           onClick={showModal}
           disabled={isSuper === "false"}
         >
@@ -257,7 +269,7 @@ const Task = () => {
         </Button>
       </span>
       <TaskTable
-        data={{characters, CompanyData, CustomerData, ServiceData, AdminData}}
+        data={{ characters, CompanyData, CustomerData, ServiceData, AdminData }}
         isLoading={isLoading}
         refetch={refetch}
       />
@@ -273,7 +285,7 @@ const Task = () => {
             value={page}
             onChange={(e) => {
               let num = e.target.value;
-              if(Number(num) && num !== '0'){
+              if (Number(num) && num !== "0") {
                 setPage(num);
               }
             }}

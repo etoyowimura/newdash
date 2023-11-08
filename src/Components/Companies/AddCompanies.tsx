@@ -1,6 +1,5 @@
 import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
 import { companyController } from "../../API/LayoutApi/companies";
-import { useState } from "react";
 import { useTeamData } from "../../Hooks/Teams";
 import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
 import { TCompany } from "../../types/Company/TCompany";
@@ -19,7 +18,6 @@ const AddCompany = ({
   const handleCancel = () => {
     setOpen(!open);
   };
-  const [teamId, setTeamId] = useState<any>('');
   const TeamData = useTeamData('');
   const TeamOption: { label: string; value: any }[] | undefined =
     TeamData?.data?.map((item) => ({
@@ -69,7 +67,6 @@ const AddCompany = ({
             rules={[{ required: true, message: "Please input owner name!" }]}
           >
             <Select
-              onChange={(value: any) => setTeamId(value)}
               options={TeamOption}
             />
           </FormAnt.Item>

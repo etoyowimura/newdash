@@ -7,6 +7,20 @@ export type TUsersGetParams = {
   team?: string;
 }
 
+export type TUsersPutParams = {
+  first_name?: string;
+  last_name?:  string;
+  username?:   string;
+  team_id?:    number;
+}
+
+export type TUsersPostParams = {
+  username?: string;
+  password?: string;
+  team_id?:  number;
+  groups?:   number[];
+}
+
 export const userController = {
   async read(filterObject: TUsersGetParams) {
     const params = {...filterObject};
@@ -25,29 +39,23 @@ export const userController = {
     return data;
   },
 
-  async userPatch(userData: any, user_id: string) {
-    const key = "updatable";
-    message.loading({ content: "Loading...", key });
-    const { data }: { data: any } = await instance(`users/admin/${user_id}/`, {
-      method: "PUT",
-      data: userData,
-    }).then((u) => {
+  async userPatch(obj: TUsersPutParams, id: string) {
+    const { data } = await instance.put<TUser>(`users/admin/${id}/`, obj).then((u) => {
       setTimeout(() => {
-        message.success({ content: "Loaded!", key, duration: 2 });
+        message.success({ content: "Loaded!", duration: 2 });
       }, 1000);
       return u;
     });
     return data;
   },
 
-  async addUserController(userId:any) {
-    message.loading({ content: "Loading...", key: userId });
-    let error = '';
+  async addUserController(obj:TUsersPostParams) {
+    message.loading({ content: "Loading..." });
     let responseData = null;
     try {
-      const response = await instance.post("users/admin/", userId);
+      const response = await instance.post<TUser>("users/admin/", obj);
       responseData = response;
-      message.success({ content: "Loaded!", key: userId, duration: 2 });
+      message.success({ content: "Loaded!",  duration: 2 });
     } catch (err: any) {
       responseData = err?.response?.data
     }
@@ -55,16 +63,13 @@ export const userController = {
   },
 
 
-  async deleteUserController(user_id: string) {
-    message.loading({ content: "Loading...", key: user_id });
+  async deleteUserController(id: string) {
     let res;
     let error = "";
     try {
-      const { data } = await instance(`users/admin/${user_id}/`, {
-        method: "DELETE",
-      }).then((u) => {
+      const { data } = await instance.delete(`users/admin/${id}/`).then((u) => {
         setTimeout(() => {
-          message.success({ content: "Deleted!", key: user_id, duration: 2 });
+          message.success({ content: "Deleted!", key: id, duration: 2 });
         }, 1000);
         return u;
       });
