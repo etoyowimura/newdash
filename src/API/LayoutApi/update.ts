@@ -64,7 +64,6 @@ export const updateController = {
   },
 
   async addUpdateController(obj: TUpdatePostParams) {
-    message.loading({ content: "Loading..." });
     const { data } = await instance
       .post<TUpdate>("shift-update/", obj)
       .then((u) => {

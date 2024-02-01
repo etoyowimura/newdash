@@ -4,35 +4,31 @@ import { Button, Input, Select, Space, message } from "antd";
 import TaskTable from "./TaskTable";
 import Search from "antd/es/input/Search";
 import { useTeamData } from "../../Hooks/Teams";
-import { StepForwardOutlined, StepBackwardOutlined, RedoOutlined } from "@ant-design/icons";
+import {
+  StepForwardOutlined,
+  StepBackwardOutlined,
+  RedoOutlined,
+} from "@ant-design/icons";
 import { useTasks } from "../../Hooks/Tasks";
 import { TTask } from "../../types/Tasks/TTasks";
-import { useCompanyData } from "../../Hooks/Companies";
-import { useCustomerData } from "../../Hooks/Customers";
-import { useUserData } from "../../Hooks/Users";
-import { useServiceData } from "../../Hooks/Services";
+import { role } from "../../App";
 
+const isMobile = window.innerWidth <= 768;
 const { Option } = Select;
-const isSuper = localStorage.getItem("isSuperUser");
 const Task = () => {
   const [open, setOpen] = useState(false);
   const [characters, setCharacters] = useState<TTask[] | undefined>();
-  const [team, setTeam] = useState<any>("");
-  const [company, setCompany] = useState<string>("");
-  const [customer, setCustomer] = useState<string>("");
-  const [user, setUser] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [team, setTeam] = useState<any>();
+  const [company, setCompany] = useState<string>();
+  const [customer, setCustomer] = useState<string>();
+  const [user, setUser] = useState<string>();
+  const [status, setStatus] = useState<string>();
   const [page, setPage] = useState<any>(1);
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("access_token");
 
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const reconnectingMessageKey = "reconnectingMessage";
   const reconnectingMessageContent = "Reconnecting...";
-
-  const CompanyData = useCompanyData({});
-  const CustomerData = useCustomerData({});
-  const AdminData = useUserData({});
-  const ServiceData = useServiceData();
 
   useEffect(() => {
     let reconnectingTimeout: NodeJS.Timeout | null = null;
@@ -79,62 +75,25 @@ const Task = () => {
     type: string;
     task: TTask;
   }
-
+  const [socketData, setSocketData] = useState<newData>();
   useEffect(() => {
     const connect = async () => {
       try {
         if (!taskSocket || taskSocket.readyState === WebSocket.CLOSED) {
-          // taskSocket = new WebSocket(
-          //   `ws://10.10.10.45:8000/tasks/?token=${token}`
-          // );
           taskSocket = new WebSocket(
-            `wss://api.tteld.co/tasks/?token=${token}`
+            `ws://10.10.10.37:8000/tasks/?token=${token}`
           );
+          // taskSocket = new WebSocket(
+          //   `wss://api.tteld.co/tasks/?token=${token}`
+          // );
 
           taskSocket.addEventListener("open", (event) => {
             console.log("open");
           });
           taskSocket.addEventListener("message", (event) => {
             const newData: newData = JSON.parse(event.data);
-            setCharacters((prev: TTask[] | undefined) => {
-              if (prev && prev?.length >= 15) {
-                prev?.pop();
-              }
-
-              if (newData.type === "task_create") {
-                return [newData.task, ...(prev || [])];
-              } else if (newData.type === "task_update") {
-                if (isSuper === "true") {
-                  const updatedData =
-                    prev?.filter((b: TTask) => b.id !== newData.task.id) || [];
-                  const data: TTask[] = [newData.task, ...updatedData];
-                  data.sort((a: TTask, b: TTask) => {
-                    if (a.status === "New" && b.status === "New") {
-                      return 0;
-                    }
-                    if (a.status === "New") {
-                      return -1;
-                    }
-                    if (b.status === "New") {
-                      return 1;
-                    }
-                    return 0;
-                  });
-                  return data;
-                } else {
-                  const data = (prev || []).map((b: TTask) =>
-                    b.id === newData.task.id ? newData.task : b
-                  );
-                  return data;
-                }
-              } else if (newData.type === "task_delete") {
-                const data = (prev || []).filter(
-                  (b: TTask) => b.id !== newData.task.id
-                );
-                return data;
-              }
-              return prev;
-            });
+            setSocketData(newData);
+            console.log(newData);
           });
           taskSocket.addEventListener("error", (errorEvent) => {
             console.error("WebSocket error:", errorEvent);
@@ -148,6 +107,52 @@ const Task = () => {
     };
     isOnline === true && connect();
   }, [isOnline]);
+
+  useEffect(() => {
+    if (
+      socketData &&
+      (team === undefined || team.includes(socketData.task.assigned_to.id))
+    ) {
+      setCharacters((prev: TTask[] | undefined) => {
+        if (prev && prev?.length >= 15) {
+          prev?.pop();
+        }
+        if (socketData.type === "task_create") {
+          return [socketData.task, ...(prev || [])];
+        } else if (socketData.type === "task_update") {
+          if (role !== "Checker") {
+            const updatedData =
+              prev?.filter((b: TTask) => b.id !== socketData.task.id) || [];
+            const data: TTask[] = [socketData.task, ...updatedData];
+            data.sort((a: TTask, b: TTask) => {
+              if (a.status === "New" && b.status === "New") {
+                return 0;
+              }
+              if (a.status === "New") {
+                return -1;
+              }
+              if (b.status === "New") {
+                return 1;
+              }
+              return 0;
+            });
+            return data;
+          } else {
+            const data = (prev || []).map((b: TTask) =>
+              b.id === socketData.task.id ? socketData.task : b
+            );
+            return data;
+          }
+        } else if (socketData.type === "task_delete") {
+          const data = (prev || []).filter(
+            (b: TTask) => b.id !== socketData.task.id
+          );
+          return data;
+        }
+        return prev;
+      });
+    }
+  });
 
   const teamData = useTeamData("");
   const teamOptions: { label: string; value: any }[] | undefined =
@@ -164,6 +169,7 @@ const Task = () => {
     team,
     page,
   });
+
   useEffect(() => {
     if (data) {
       setCharacters(data?.data);
@@ -189,6 +195,7 @@ const Task = () => {
       setPage(a);
     }
   };
+
   return (
     <div>
       <span
@@ -200,76 +207,83 @@ const Task = () => {
         }}
       >
         {open && <AddTask open={open} setOpen={setOpen} />}
-        <div
-          className="search"
-          style={{ display: "flex", width: "100%", marginRight: 15 }}
-        >
-          <Search
-            style={{ marginRight: 10, width: "18%" }}
-            type="text"
-            placeholder="Search by Company"
-            onChange={(event) => setCompany(event.target.value)}
-            value={company}
-            allowClear
-          />
-          <Search
-            style={{ marginRight: 10, width: "18%" }}
-            type="text"
-            placeholder="Search by Customer"
-            onChange={(event) => {
-              setCustomer(event.target.value);
-            }}
-            value={customer}
-            allowClear
-          />
-          <Search
-            style={{ width: "18%" }}
-            type="text"
-            placeholder="Search by User"
-            onChange={(event) => setUser(event.target.value)}
-            value={user}
-            allowClear
-          />
-          <Select
-            style={{ width: "20%", marginLeft: 10 }}
-            placeholder="status"
-            onChange={(value: any) => setStatus(value)}
-            mode="multiple"
+        {isMobile ? (
+          <Space></Space>
+        ) : (
+          <div
+            className="search"
+            style={{ display: "flex", width: "100%", marginRight: 15 }}
           >
-            <Option value="New">New</Option>
-            <Option value="Checking">Checking</Option>
-            <Option value="Done">Done</Option>
-          </Select>
-          {isSuper === "true" && (
-            <Select
-              mode="multiple"
-              style={{ width: "20%", marginLeft: 10 }}
-              placeholder="team"
-              onChange={(value: any) => setTeam(value)}
-              options={teamOptions}
+            <Search
+              style={{ marginRight: 10, width: "18%"}}
+              type="text"
+              placeholder="Search by Company"
+              onChange={(event) => setCompany(event.target.value)}
+              value={company}
+              allowClear
             />
-          )}
-        </div>
-        <Button
-          type="primary"
-          size={"middle"}
-          style={{padding: '4px 8px'}}
-          onClick={() => {refetch()}}
-        >
-          <RedoOutlined />
-        </Button>
-        <Button
-          type="primary"
-          style={{ marginLeft: 15 }}
-          size={"middle"}
-          onClick={showModal}
-          disabled={isSuper === "false"}
-        >
-          Add Task
-        </Button>
+            <Search
+              style={{ marginRight: 10, width: "18%" }}
+              type="text"
+              placeholder="Search by Customer"
+              onChange={(event) => {
+                setCustomer(event.target.value);
+              }}
+              value={customer}
+              allowClear
+            />
+            <Search
+              style={{ width: "18%" }}
+              type="text"
+              placeholder="Search by User"
+              onChange={(event) => setUser(event.target.value)}
+              value={user}
+              allowClear
+            />
+            <Select
+              style={{ width: "20%", marginLeft: 10 }}
+              placeholder="status"
+              onChange={(value: any) => setStatus(value)}
+              mode="multiple"
+            >
+              <Option value="New">New</Option>
+              <Option value="Checking">Checking</Option>
+              <Option value="Done">Done</Option>
+            </Select>
+            {role !== "Checker" && (
+              <Select
+                mode="multiple"
+                style={{ width: "20%", marginLeft: 10 }}
+                placeholder="team"
+                onChange={(value: any) => setTeam(value)}
+                options={teamOptions}
+              />
+            )}
+          </div>
+        )}
+        <Space>
+          <Button
+            type="primary"
+            size={isMobile ? "small" : "middle"}
+            onClick={() => {
+              refetch();
+            }}
+          >
+            <RedoOutlined />
+          </Button>
+          <Button
+            type="primary"
+            style={{ marginLeft: 15 }}
+            size={isMobile ? "small" : "middle"}
+            onClick={showModal}
+            disabled={role === "Checker"}
+          >
+            Add Task
+          </Button>
+        </Space>
       </span>
       <TaskTable
-        data={{ characters, CompanyData, CustomerData, ServiceData, AdminData }}
+        data={{ characters }}
         isLoading={isLoading}
         refetch={refetch}
       />
@@ -279,6 +293,7 @@ const Task = () => {
             type="primary"
             icon={<StepBackwardOutlined />}
             onClick={Previos}
+            disabled={page === 1 ? true : false}
           ></Button>
           <Input
             style={{ width: 50, textAlign: "right" }}

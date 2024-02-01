@@ -1,28 +1,20 @@
 
 import { Table, Tag } from "antd";
 import { TStatTeam } from "../../types/Statistic/TStat";
-import {
-  QueryObserverResult,
-  RefetchOptions,
-  RefetchQueryFilters,
-} from "react-query";
+import { isMobile } from "../../App";
 
 const StatTeamTable = ({
   data,
   isLoading,
-  refetch,
 }: {
   data: TStatTeam[] | undefined;
   isLoading: boolean;
-  refetch: <TPageData>(
-    options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
-  ) => Promise<QueryObserverResult<TStatTeam[], unknown>>;
 }) => {
-
   return (
-    <div>
+    <div style={{ maxHeight: "400px", overflow: "auto" }}>
       <Table
         loading={isLoading}
+        size="small"
         dataSource={data?.map((u, i) => ({
           no: i + 1,
           ...u,
@@ -61,6 +53,9 @@ const StatTeamTable = ({
             },
           },
         ]}
+        pagination={{
+          pageSize: 5,
+        }}
       />
     </div>
   );

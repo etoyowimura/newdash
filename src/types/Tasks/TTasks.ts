@@ -1,13 +1,11 @@
-import { type } from "os";
-
 export type TTask = {
   id?: number;
-  company_id?: number;
-  customer_id?: number;
-  service_id?: number;
-  provider_id?: number;
-  assigned_to_id?: number | null;
-  in_charge_id?: number;
+  company?: string;
+  customer?: string;
+  service?: {id: number; title: string};
+  provider?: string;
+  assigned_to: {id: number, name: string};
+  in_charge: {id: number, username: string};
   note?: string;
   status?: string;
   is_active?: boolean;

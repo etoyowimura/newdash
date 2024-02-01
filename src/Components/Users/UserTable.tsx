@@ -6,6 +6,7 @@ import {
   RefetchOptions,
   RefetchQueryFilters,
 } from "react-query";
+import { useNavigate } from "react-router-dom";
 
 const UserTable = ({
   data,
@@ -18,6 +19,7 @@ const UserTable = ({
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TUser[], unknown>>;
 }) => {
+  const navigate = useNavigate();
   const TeamData = useTeamData("");
 
   const Row = (record: TUser) => {
@@ -35,10 +37,10 @@ const UserTable = ({
         if (isTextSelected) {
           return;
         }
-        document.location.replace(`/#/users/${record.id}`);
+        navigate(`/users/${record.id}`);
       },
     };
-  }
+  };
 
   return (
     <div>
@@ -49,12 +51,15 @@ const UserTable = ({
           team: TeamData?.data?.map((team: any) => {
             if (team.id === u?.team_id) {
               return team?.name;
+            } else {
+              return null;
             }
           }),
           action: { id: u.id },
           ...u,
         }))}
         loading={isLoading}
+        size="middle"
         columns={[
           {
             title: "No",
@@ -72,7 +77,9 @@ const UserTable = ({
             title: "Is Active",
             dataIndex: "is_active",
             render: (tag: boolean) => (
-              <Tag color={tag ? "geekblue" : "red"}>{tag ? "True" : "False"}</Tag>
+              <Tag color={tag ? "geekblue" : "red"}>
+                {tag ? "True" : "False"}
+              </Tag>
             ),
             filters: [
               {

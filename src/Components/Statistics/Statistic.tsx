@@ -1,21 +1,20 @@
 import { useState } from "react";
-import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
 import { statController } from "../../API/LayoutApi/statistic";
 import { useTeamData } from "../../Hooks/Teams/index";
-import { useStatTeamData, useStatsData } from "../../Hooks/Stats";
+import {
+  useCardData,
+  useCreatorsData,
+  useStatTeamData,
+  useStatsData,
+} from "../../Hooks/Stats";
 import { TStatTeam } from "../../types/Statistic/TStat";
-import StatTable from "./StatisticTable";
-import StatTeamTable from "./StatisticTeamTable";
 import Search from "antd/es/input/Search";
 import dayjs from "dayjs";
-import {
-  Button,
-  DatePicker,
-  DatePickerProps,
-  Select,
-  Space,
-  Switch,
-} from "antd";
+import { Button, DatePicker, DatePickerProps, Select, Switch } from "antd";
+import BarStat from "./BarStat";
+import StatTable from "./StatisticTable";
+import BarCreatorsStat from "./BarCreatorsStat";
+import StatTeamTable from "./StatisticTeamTable";
 
 const Stat = () => {
   const now = dayjs();
@@ -27,11 +26,10 @@ const Stat = () => {
   const end_date = `${nextMonth.format("YYYY-MM")}-01 00:00:00`;
 
   const [name, setName] = useState<string>("");
-  const [table, setTable] = useState<boolean>(false);
   const [team, setTeam] = useState<any>("");
   const [startDate, setStartDate] = useState(start_date);
   const [endDate, setEndDate] = useState(end_date);
-
+  const [table, setTable] = useState(false)
   const teamData = useTeamData("");
   const teamOptions: { label: string; value: any }[] | undefined =
     teamData?.data?.map((item) => ({
@@ -46,20 +44,12 @@ const Stat = () => {
     teamOptions.unshift(additionalOption);
   }
 
-  const tableSwitch = (stat: any) => {
-    setTable(stat);
-  };
-
   const handleSave = () => {
     const trimmedStartDate = startDate.slice(0, 10);
     const trimmedEndDate = endDate.slice(0, 10);
     const fileName = `${trimmedStartDate}-${trimmedEndDate}`;
-    if (!table) {
-      const teamName = `${team}_${fileName}`;
-      statController.saveUsersStats(teamName, startDate, endDate, team);
-    } else {
-      statController.saveTeamStats(fileName, startDate, endDate);
-    }
+    const teamName = `${team}_${fileName}`;
+    statController.saveUsersStats(teamName, startDate, endDate, team);
   };
 
   const datePick = (a: any, b: any) => {
@@ -86,23 +76,113 @@ const Stat = () => {
     }
   };
 
-  const { data, refetch, isLoading } = useStatsData({
+  const { data, isLoading } = useStatsData({
     name: name,
     team: team,
     start_date: startDate,
     end_date: endDate,
   });
   interface DataType {
-    data?: TStatTeam[],
-    refetch: <TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined) => Promise<QueryObserverResult<TStatTeam[], unknown>>,
+    data?: TStatTeam[];
     isLoading: boolean;
   }
-  const TeamData: DataType = useStatTeamData({name: '', start_date: startDate, end_date: endDate})
-  
+  const TeamData: DataType = useStatTeamData({
+    name: "",
+    start_date: startDate,
+    end_date: endDate,
+  });
+  const CreatorsData: DataType = useCreatorsData({
+    start_date: startDate,
+    end_date: endDate,
+  });
+
+  const { data: cardData } = useCardData({
+    start_date: startDate,
+    end_date: endDate,
+  });
 
   return (
     <div>
-      <span
+      <div>
+        <DatePicker
+          onChange={onChangeDate}
+          picker="month"
+          format={"MMMM"}
+          defaultValue={now}
+          size="small"
+          style={{ marginRight: 10 }}
+        />
+        <RangePicker size="small" onCalendarChange={datePick} />
+      </div>
+      <div className="mainStat">
+        <div className="mainstat-left">
+          <div className="mainstat-card">
+            <Switch
+              size="small"
+              checkedChildren="table"
+              unCheckedChildren="graph"
+              onChange={e => setTable(!table)}
+            />
+            {
+              table ?
+                <StatTeamTable data={TeamData?.data} isLoading={isLoading}/>
+              :
+              <BarStat data={TeamData?.data} />
+            }
+          </div>
+          <div className="mainstat-card">
+            <div className="cards">
+              <div style={{ marginTop: -150 }} className="card_stat">
+                Active Tasks<span>{cardData?.active_tasks}</span>
+                {cardData?.active_tasks_percentage}%
+              </div>
+              <div style={{ marginTop: 150 }} className="card_stat">
+                Total: <span>{cardData?.all_tasks}</span>tasks
+              </div>
+              <div style={{ marginTop: -150 }} className="card_stat">
+                Inactive Tasks<span>{cardData?.inactive_tasks}</span>
+                {cardData?.inactive_tasks_percentage}%
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mainstat-right">
+          <div className="mainstat-card">
+            <Search
+              style={{ width: "45%", marginBottom: 10 }}
+              type="text"
+              placeholder="Search by Name"
+              onChange={(event) => setName(event.target.value)}
+              value={name}
+              allowClear
+              size="small"
+            />
+            <Select
+              style={{ width: "25%", marginLeft: 15 }}
+              placeholder="team"
+              onChange={(value: any) => {
+                setTeam(value);
+              }}
+              options={teamOptions}
+              size="small"
+            />
+            <Button
+              type="primary"
+              size="small"
+              style={{ fontWeight: 300, marginLeft: 15 }}
+              onClick={handleSave}
+            >
+              Save as file
+            </Button>
+            <StatTable data={{ data }} isLoading={isLoading} />
+          </div>
+          <div className="mainstat-card">
+            <BarCreatorsStat data={CreatorsData.data} />
+          </div>
+        </div>
+      </div>
+
+      {/* <span
         style={{
           display: "flex",
           alignItems: "center",
@@ -110,51 +190,28 @@ const Stat = () => {
           marginBottom: 10,
         }}
       >
-        <div className="search">
-          <Search
-            style={{ width: 300 }}
-            type="text"
-            placeholder="Search by Name"
-            onChange={(event) => setName(event.target.value)}
-            value={name}
-            allowClear
-          />
-          <Select
-            style={{ width: 120, marginLeft: 15 }}
-            placeholder="team"
-            onChange={(value: any) => setTeam(value)}
-            options={teamOptions}
-          />
-          <Space style={{ paddingLeft: 10 }}>
-            {/* <a>by team</a> */}
-            <Switch
-              unCheckedChildren="teams"
-              checkedChildren="users"
-              defaultChecked={false}
-              onChange={(event) => tableSwitch(event)}
-            ></Switch>
-          </Space>
+        <div
+          className="search"
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <DatePicker
+              onChange={onChangeDate}
+              picker="month"
+              format={"MMMM"}
+              defaultValue={now}
+              size={isMobile ? "small" : "small"}
+              style={{ marginRight: 10 }}
+            />
+            {!isMobile && <RangePicker onCalendarChange={datePick} />}
+          </div>
         </div>
-        <div className="">
-          <DatePicker
-            onChange={onChangeDate}
-            picker="month"
-            format={"MMMM"}
-            defaultValue={now}
-            style={{ marginRight: 10 }}
-          />
-          <RangePicker onCalendarChange={datePick} />
-        </div>
-      </span>
-
-      {table ? (
-        <StatTable data={{data, teamData}} isLoading={isLoading} refetch={refetch} />
-      ) : (
-        <StatTeamTable data={TeamData?.data} isLoading={TeamData?.isLoading} refetch={TeamData?.refetch} />
-      )}
-      <Button type="primary" onClick={handleSave}>
-        Save as file
-      </Button>
+      </span> */}
     </div>
   );
 };

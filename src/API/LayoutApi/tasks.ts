@@ -1,7 +1,6 @@
 import { TTask, TTaskHistory } from "../../types/Tasks/TTasks";
 import { TPagination } from "../../types/common/TPagination";
 import instance from "../api";
-import { message } from "antd";
 
 export type TTasksGetParams = {
   company?: string;
@@ -68,7 +67,7 @@ export const taskController = {
     return data;
   },
 
-  async taskPatch(obj: TTasksPutParams, task_id: number) {
+  async taskPatch(obj: TTasksPutParams, task_id: string) {
     const { data } = await instance
       .put<TTask>(`task/${task_id}/`, obj)
       .then((u) => {
@@ -87,7 +86,7 @@ export const taskController = {
   async addTaskFile(formData: any) {
     const { data } = await instance.post("attachment/", formData, {
       headers: {
-        "Content-Type": "multipart/form-data", // Установите правильный Content-Type
+        "Content-Type": "multipart/form-data",
       },
     });
     return data;

@@ -1,9 +1,13 @@
 export type TUpdate = {
     id:          number;
-    company_id:  number;
-    customer_id: number;
-    provider_id: number;
-    executor_id: number | null;
+    company_id?:  number;
+    customer_id?: number;
+    provider_id?: number;
+    executor_id?: number | null;
+    company?:  number;
+    customer?: number;
+    provider?: number;
+    executor?: number | null;
     status:      string;
     note:        string;
     solution:    string;

@@ -1,27 +1,39 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import {
-  Layout,
-  Menu,
-  ConfigProvider,
-  Dropdown,
-  Space,
-} from "antd";
+import { Layout, Menu, ConfigProvider, Dropdown, Space, Avatar } from "antd";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { allMenu, mainItems, superItems } from "./Utils/sidebar";
 import Login from "./Auth/Login";
 import Notfound from "./Utils/Notfound";
-import { LogoutApi } from "./API/auth/Logout";
+import { LogoutApi } from "./API/auth/logout";
 import { Switch } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { UserOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import Register from "./Auth/Register";
+import Activate from "./Auth/Activate";
+import Invite from "./Auth/Invite";
+import ResetPassword from "./Auth/ResetPassword";
+import ResetByEmail from "./Auth/ResetByEmail";
 
+
+interface userType {
+  first_name:string | null;
+  last_name: string | null
+  id: number | null;
+  role: string | null;
+  timezone: string | null;
+  username: string | null;
+}
+export const isMobile = window.innerWidth <= 768;
 const { Header, Sider, Content } = Layout;
-const userJSON : any= localStorage.getItem("user");
-const userObject = JSON.parse(userJSON);
+const userJSON : any = localStorage.getItem("user");
+const userObject : userType = JSON.parse(userJSON);
+export const timeZone = userObject?.timezone;
+export const role = userObject?.role;
+export const admin_id = userObject?.id;
 
 const App: React.FC = () => {
-  const isAuthenticated = localStorage.getItem("token") as string;
+  const isAuthenticated = localStorage.getItem("access_token") as string;
   const authorized = isAuthenticated;
   const [collapsed, setCollapsed] = useState<any>(
     localStorage.getItem("collapsed") === "true" ? true : false
@@ -37,118 +49,125 @@ const App: React.FC = () => {
     localStorage.setItem("collapsed", collapsed);
   }, [collapsed]);
 
-  let location: any = useLocation();
+  let location = useLocation();
   const clickLogout = () => {
     LogoutApi();
   };
   const dark = {
     components: {
       Table: {
-        colorBgContainer: "#141414",
-        colorText: "#d9d9d9",
-        headerColor: "#d9d9d9",
-        borderColor: "#595959",
-        headerSplitColor: "#595959",
-        rowHoverBg: "#8c8c8c",
-        colorBorder: '#434343',
+        colorBgContainer: "#202020",
+        colorText: "#E0E0E0",
+        headerColor: "#E0E0E0",
+        borderColor: "#3A3A3A",
+        headerSplitColor: "#3A3A3A",
+        rowHoverBg: "#333333",
+        colorBorder: "#3A3A3A",
       },
       Layout: {
-        bodyBg: "#1f1f1f",
+        bodyBg: "#181818",
       },
       Input: {
-        colorBgContainer: "#595959",
-        colorText: "#d9d9d9",
-        colorTextPlaceholder: "#d9d9d9",
-        colorBorder: "#595959",
-        colorPrimaryHover: "#1f1f1f",
-        colorIconHover: "#1f1f1f",
-        activeBorderColor: "none",
-        colorPrimaryActive: "none",
+        colorBgContainer: "#2A2A2A",
+        colorText: "#E0E0E0",
+        colorTextPlaceholder: "#BBBBBB",
+        colorBorder: "#3A3A3A",
+        colorPrimaryHover: "#1E1E1E",
+        colorIconHover: "#1E1E1E",
+        activeBorderColor: "#565656",
+        colorPrimaryActive: "#1E1E1E",
         activeShadow: "none",
+        borderRadius: 2 ,
       },
       Select: {
-        colorBgContainer: "#595959",
-        colorText: "#d9d9d9",
-        colorTextPlaceholder: "#d9d9d9",
-        colorBorder: "#595959",
-        colorPrimaryHover: "#1f1f1f",
-        colorIconHover:  "#d9d9d9",
-        optionSelectedBg: "#1f1f1f",
-        colorBgElevated: "#000000",
-        controlOutline: 'none',
-        optionActiveBg: "#595959",
-        colorTextQuaternary: "#d9d9d9",
+        colorBgContainer: "#2A2A2A",
+        colorText: "#BBBBBB",
+        colorTextPlaceholder: "#BBBBBB",
+        colorBorder: "#3A3A3A",
+        colorPrimaryHover: "#1E1E1E",
+        colorIconHover: "#1E1E1E",
+        optionSelectedBg: "#1E1E1E",
+        colorBgElevated: "#1A1A1A",
+        controlOutline: "none",
+        optionActiveBg: "#333333",
+        colorTextQuaternary: "#1E1E1E",
+        borderRadius: 2 ,
       },
       Button: {
-        colorBgBase: "#1f1f1f",
-        colorBgContainer: "#d9d9d9",
-        colorBorderSecondary: "#595959",
-        colorPrimary: "#595959",
-        colorPrimaryHover: "#595959",
-        colorIcon: "#d9d9d9",
-        primaryShadow: "none,",
+        colorBorderSecondary: "#ffb94a",
+        colorPrimary: "#ffb94a",
+        colorPrimaryHover: "#ffb94a",
+        colorIcon: "#E0E0E0",
+        primaryShadow: "none",
         dangerShadow: "none",
-        colorTextDisabled: "#d9d9d9",
-        borderColorDisabled: "#d9d9d9",
+        colorTextDisabled: "#AAAAAA",
+        borderColorDisabled: "#3A3A3A",
+        borderRadius: 2 ,
       },
       Form: {
-        labelColor: "#d9d9d9",
+        labelColor: "#E0E0E0",
       },
       Tabs: {
-        itemColor: "#d9d9d9",
-        itemHoverColor: "#f5f5f5",
-        itemSelectedColor: "#f5f5f5",
-        colorPrimaryActive: "#1f1f1f",
+        itemColor: "#E0E0E0",
+        itemHoverColor: "#FFFFFF",
+        itemSelectedColor: "#FFFFFF",
+        colorPrimaryActive: "#1E1E1E",
       },
       Upload: {
-        colorText: "#f5f5f5",
-        colorInfoBgHover: "#1f1f1f",
+        colorText: "#FFFFFF",
+        colorInfoBgHover: "#1E1E1E",
       },
       Pagination: {
-        colorText: "#d9d9d9",
-        colorPrimary: "#f5f5f5",
-        colorBgContainer: "#000",
-        colorBorderSecondary: "#f5f5f5",
+        colorText: "#E0E0E0",
+        colorPrimary: "#FFFFFF",
+        colorBgContainer: "#1A1A1A",
+        colorBorderSecondary: "#FFFFFF",
       },
       Modal: {
-        contentBg: "#1f1f1f ",
-        headerBg: "#1f1f1f ",
-        titleColor: '#fff'
+        contentBg: "#1E1E1E",
+        headerBg: "#1E1E1E",
+        titleColor: "#FFFFFF",
       },
       Menu: {
-        darkItemSelectedBg: "#1f1f1f",
-        colorBgContainer: "",
+        darkItemSelectedBg: "#1E1E1E",
+        colorBgContainer: "#202020",
+        darkItemColor:  "#E0E0E0",
       },
       Switch: {
-        colorPrimary: "#8c8c8c",
-        colorPrimaryHover: "#8c8c8c",
+        colorPrimary: "#565656",
+        colorPrimaryHover: "#737373",
       },
       Radio: {
-        colorText:"#d9d9d9",
-        colorBorder: '#8c8c8c',
-        colorPrimaryActive: '#d9d9d9',
-        buttonCheckedBg: "#fafafa",
-        colorPrimaryHover: "#bfbfbf",
-        colorPrimary: "#8c8c8c",
+        colorText: "#737373",
+        colorBorder: "#565656",
+        colorPrimaryActive: "#E0E0E0",
+        buttonCheckedBg: "#ffb94a",
+        colorPrimaryHover: "#737373",
+        colorPrimary: "#565656",
       },
       Dropdown: {
-        colorBgContainer: "#bfbfbf",
-        colorText: "#d9d9d9",
-        colorPrimaryHover: "#bfbfbf",
-        colorPrimary: "#8c8c8c",
+        colorBgContainer: "#3A3A3A",
+        colorText: "#E0E0E0",
+        colorPrimaryHover: "#565656",
+        colorPrimary: "#333333",
       },
       DatePicker: {
-        colorBgContainer: "#bfbfbf",
-        colorBgElevated: "#bfbfbf",
+        colorBgContainer: "#3A3A3A",
+        colorBgElevated: "#3A3A3A",
+      },
+      Empty:{
+        colorText: "#ffb94a",
+        colorTextDisabled: "#ffb94a",
       }
     },
     token: {
-      fontFamily: 'Noto Sans, sans-serif',
-      colorBgLayout: "#000",
-      colorBgBase: "#000",
-      colorIcon: "#bfbfbf",
+      fontFamily: "Noto Sans, sans-serif",
+      colorBgLayout: "#181818",
+      colorBgBase: "#E0E0E0",
+      colorIcon: "#E0E0E0",
     },
-  }
+
+  };
   const light = {
     components: {
       Table: {
@@ -157,16 +176,39 @@ const App: React.FC = () => {
       Menu: {
         darkItemSelectedBg: "#2e5884",
       },
+      Button: {
+        colorPrimary: "#ffb94a",
+        colorPrimaryHover: "#ffb94a",
+        colorIcon: "#ffb94a",
+        primaryShadow: "#ffb94a",
+        dangerShadow: "#ffb94a",
+        colorTextDisabled: "#ffb94a",
+        borderColorDisabled: "#ffb94a",
+        colorBgContainerDisabled: '#fff',
+        borderRadius: 2 ,
+      },
+      Select: {
+        colorPrimaryHover: "#ffb94a",
+        borderRadius: 2 ,
+      },
+      Input:{
+        hoverBorderColor: "#ffb94a",
+        activeBorderColor: "#ffb94a",
+        borderRadius: 2 ,
+      },
+      Radio: {
+        colorPrimary: "#ffb94a",
+      },
     },
     token: {
-      fontFamily: 'Noto Sans, sans-serif',
-      color: '#000'
+      fontFamily: "Noto Sans, sans-serif",
+      color: "#1c1c1e",
     },
-  } 
+  };
   const rep = () => {
     document.location.replace("/");
   };
-  const menu:any = (
+  const menu: any = (
     <Menu>
       <Menu.Item key="profile">
         <Link to="profile/">Profile</Link>
@@ -176,35 +218,49 @@ const App: React.FC = () => {
       </Menu.Item>
     </Menu>
   );
+
   return (
-      <ConfigProvider theme={theme === true ? dark : light}>
-        <div>
-          {!authorized && location.pathname !== "/login" && (
+    <ConfigProvider theme={theme === true ? dark : light}>
+      <div>
+        {!authorized &&
+          !(
+            location.pathname.startsWith("/auth/register") ||
+            location.pathname.startsWith("/auth/activate") ||
+            location.pathname.startsWith("/auth/reset_password") ||
+            location.pathname.startsWith("/auth/reset-password") ||
+            location.pathname.startsWith("/auth/login")
+          ) && (
             <Navigate
               to={{
-                pathname: "/login",
+                pathname: "/auth/login",
               }}
             />
           )}
-          {authorized && location.pathname === "/login" && (
-            <Navigate
-              to={{
-                pathname: "/",
-              }}
-            />
-          )}
-          {authorized ? (
-            <Layout>
+        {authorized && (location.pathname === "/auth/login" || location.pathname === "/")  && (
+          <Navigate
+            to={{
+              pathname: "/tasks",
+            }}
+          />
+        )}
+        {authorized ? (
+          <Layout>
+            {isMobile ? (
+              <div className=""></div>
+            ) : (
               <Sider
                 theme={"dark"}
                 collapsible
                 collapsed={collapsed}
                 onCollapse={(value) => setCollapsed(value)}
-                style={{ height: "100vh", background: theme === true ? '#000' : '#3b6ea5'}}
+                style={{
+                  height: "100vh",
+                  background: theme === true ? "#1c1c1e" : "#293649",
+                }}
               >
                 <p
                   onClick={rep}
-                  style={{ cursor: "pointer"}}
+                  style={{ cursor: "pointer" }}
                   className={collapsed ? "logo-collapsed" : "logo"}
                 >
                   TT ELD
@@ -214,15 +270,27 @@ const App: React.FC = () => {
                   mode="inline"
                   items={allMenu}
                   defaultSelectedKeys={[location.pathname]}
-                  style={{ background: theme === true ? "#000" : '#3b6ea5' }}
+                  style={{ background: theme === true ? "#1c1c1e" : "#293649" }}
                 ></Menu>
               </Sider>
-              <Layout className="site-layout">
+            )}
+            <Layout className="site-layout">
+              {isMobile ? (
+                <Header style={{ padding: 0 }}>
+                  <div className="demo-logo" />
+                  <Menu
+                    theme="dark"
+                    mode="horizontal"
+                    defaultSelectedKeys={["2"]}
+                    items={allMenu}
+                  />
+                </Header>
+              ) : (
                 <Header
                   className="site-layout-background"
                   style={{
                     padding: 0,
-                    background: theme === true ? "#000" : '#fff',
+                    background: theme === true ? "#1c1c1e" : "#fff",
                     display: "flex",
                     justifyContent: "end",
                     alignItems: "center",
@@ -242,53 +310,74 @@ const App: React.FC = () => {
                   >
                     <Switch
                       unCheckedChildren={"Dark"}
-                      className="swww"
                       checkedChildren={"Light"}
                       defaultChecked={theme === true}
                       onChange={(e: any) => setTheme(e)}
                     />
                     <Dropdown overlay={menu} trigger={["click"]}>
-                      <a onClick={(e) => e.preventDefault()}>
+                      <div
+                        style={{ cursor: "pointer" }}
+                        onClick={(e) => e.preventDefault()}
+                      >
                         <Space>
-                          <p style={{color: theme === true ? '#f0f0f0' : '#000', paddingLeft: 20}}>{userObject.username} </p>
-                          <DownOutlined />
+                          <p
+                            style={{
+                              color: theme === true ? "#f0f0f0" : "#1c1c1e",
+                              paddingLeft: 20,
+                            }}
+                          >
+                            {userObject?.username}{" "}
+                          </p>
+                          <Avatar
+                            style={{ backgroundColor: "#87d068" }}
+                            size="small"
+                            icon={<UserOutlined />}
+                          />
                         </Space>
-                      </a>
+                      </div>
                     </Dropdown>
                   </div>
                 </Header>
-                <Content
-                  id="element"
-                  className="site-layout-background"
-                  style={{
-                    padding: 24,
-                    minHeight: '92vh',
-                    maxHeight: "calc(90vh - 10px)",
-                    overflowY: "scroll",
-                    background: theme === true ? "#141414" : "#fff",
-                  }}
-                >
-                  <Routes>
-                    {mainItems && mainItems.map((u) => (
+              )}
+              <Content
+                id="element"
+                className="site-layout-background"
+                style={{
+                  padding: 24,
+                  minHeight: "92vh",
+                  maxHeight: "calc(90vh - 10px)",
+                  overflowY: "scroll",
+                  background: theme === true ? "#1c1c1e" : "#fff",
+                }}
+              >
+                <Routes>
+                  {mainItems &&
+                    mainItems.map((u) => (
                       <Route key={u.key} path={u.path} element={u.component} />
                     ))}
-                    {superItems && superItems.map((u) => (
+                  {superItems &&
+                    superItems.map((u) => (
                       <Route key={u.key} path={u.path} element={u.component} />
                     ))}
-                    <Route path="*" element={<Notfound />} />
-                  </Routes>
-                </Content>
-              </Layout>
+                  <Route path="*" element={<Notfound />} />
+                </Routes>
+              </Content>
             </Layout>
-          ) : (
-            <></>
-          )}
-          <Routes>
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </div>
-      </ConfigProvider>
-  )
+          </Layout>
+        ) : (
+          <></>
+        )}
+        <Routes>
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/register" element={<Register />} />
+          <Route path="/auth/activate" element={<Activate />} />
+          <Route path="/auth/invite" element={<Invite />}/>
+          <Route path="/auth/reset_password" element={<ResetPassword />}/>
+          <Route path="/auth/reset-password" element={<ResetByEmail />}/>
+        </Routes>
+      </div>
+    </ConfigProvider>
+  );
 };
 
 export default App;

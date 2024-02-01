@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Space, Table, message } from "antd";
 import { Link } from "react-router-dom";
 import { SyncOutlined, EyeOutlined } from "@ant-design/icons";
 import { companyController } from "../../API/LayoutApi/companies";
-import { useTeamData } from "../../Hooks/Teams";
 import { TCompany } from "../../types/Company/TCompany";
-const isSuper = localStorage.getItem("isSuperUser");
+import { isMobile, role, timeZone } from "../../App";
 
 function CompanyTable({
   data,
@@ -14,28 +13,30 @@ function CompanyTable({
   data?: TCompany[] | undefined;
   isLoading?: boolean;
 }) {
-  const moment = require('moment')
+  const moment = require('moment-timezone')
   const [loadings, setLoadings] = useState<boolean[]>([]);
   function getStatusClassName() {
-    if (isSuper === "false") {
-      return "isnot";
-    } else if (isSuper === "true") {
+    if (role === "Checker") {
+      return "isNot";
+    } else if (role === "Tech Support") {
       return "super";
     }
   }
 
-  const TeamData = useTeamData("");
   return (
     <div>
       <Table
         dataSource={data?.map((u, i) => ({
           ...u,
           no: i + 1,
-          team: TeamData?.data?.find((team) => team.id === u?.team_id)?.name || "",
-          created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
+          created: moment(u?.created_at).tz(timeZone).format('DD.MM.YYYY HH:mm'),
           key: u?.id,
           action: {...u},
         }))}
+        pagination={{
+          pageSize: 15,
+        }}
+        size="middle"
         loading={isLoading}
         columns={[
           {
@@ -100,13 +101,13 @@ function CompanyTable({
               return (
                 <Space>
                   <Link to={`${id}`}>
-                    {isSuper === "true" && <Button type="primary">Edit</Button>}
-                    {isSuper === "false" && (
+                    {(role === "Tech Support" || "Owner") && <Button type="primary">Edit</Button>}
+                    {role === "false" && (
                       <Button type="primary" icon={<EyeOutlined />}></Button>
                     )}
                   </Link>
       
-                  {isSuper === "true" && (
+                  {role === "true" && (
                     <Button
                       type="primary"
                       icon={<SyncOutlined />}
@@ -123,5 +124,6 @@ function CompanyTable({
     </div>
   );
 }
+
 
 export default CompanyTable;

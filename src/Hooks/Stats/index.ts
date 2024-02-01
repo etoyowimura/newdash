@@ -16,6 +16,21 @@ export const useStatTeamData = ({name, start_date, end_date}: TStatGetParams) =>
     );
 };
 
+export const useCreatorsData = ({ start_date, end_date}: TStatGetParams) => {
+    return useQuery(
+        [`stats/task-creators/`, start_date, end_date],
+        () => statController.creators({ start_date, end_date}),
+        { refetchOnWindowFocus: false }
+    );
+};
+
+export const useCardData = ({ start_date, end_date}: TStatGetParams) => {
+    return useQuery(
+        [`stats/tasks-comparison/`, start_date, end_date],
+        () => statController.cards({ start_date, end_date}),
+        { refetchOnWindowFocus: false }
+    );
+};
 
 export const useStatOne = (
     statId: number | string | undefined

@@ -17,10 +17,12 @@ import {
 import { updateController } from "../../API/LayoutApi/update";
 import { FormOutlined, UploadOutlined, LinkOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-import { companyController } from "../../API/LayoutApi/companies";
-import { customerController } from "../../API/LayoutApi/customers";
+// import { companyController } from "../../API/LayoutApi/companies";
+// import { customerController } from "../../API/LayoutApi/customers";
 import { taskController } from "../../API/LayoutApi/tasks";
 import TextArea from "antd/es/input/TextArea";
+import { role } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 const TabPane = Tabs.TabPane;
@@ -31,6 +33,7 @@ type MyObjectType = {
   [key: string | number]: any;
 };
 const UpdateEdit = () => {
+  const navigate = useNavigate();
   const { id } = useParams<params>();
   const { data, refetch, status }: MyObjectType = useUpdateOne(id);
   const onSubmit = async (value: any) => {
@@ -38,63 +41,49 @@ const UpdateEdit = () => {
       if (value.solution !== "") {
         await updateController.updatePut(value, id);
         refetch();
-        document.location.replace("/#/updates/");
+        navigate(-1);
       } else {
-        alert("solution is empty!!!!!!!!!!!!!!!!!!!!!");
+        alert("solution is empty!");
       }
     } else {
       await updateController.updatePut(value, id);
       refetch();
-      document.location.replace("/#/updates/");
+      navigate(-1);
     }
   };
-  const isSuper = localStorage.getItem("isSuperUser");
   const admin_id = localStorage.getItem("admin_id");
-  const [companyId, setCompanyId] = useState<any>(null);
-  const [companyValue, setCompanyValue] = useState<any>();
-  const [companyData, setCompanyData] = useState<MyObjectType>();
-  const [customerId, setCustomerId] = useState<any>(null);
-  const [customerValue, setCustomerValue] = useState<any>();
-  const [customerData, setCustomerData] = useState<MyObjectType>();
-  useEffect(() => {
-    if (data) {
-      if (data.company_id === null) {
-        setCompanyId(null);
-      }
-      if (data.customer_id === null) {
-        setCustomerId(null);
-      }
-      const companyIdFromData = data.company_id;
-      const customerIdFromData = data.customer_id;
-      setCompanyId(companyIdFromData);
-      setCustomerId(customerIdFromData);
-    }
-  }, [data]);
-  useEffect(() => {
-    if (companyId !== null) {
-      companyController.companyOne(companyId).then((CompanyData) => {
-        setCompanyData(CompanyData);
-      });
-    }
-  }, [companyId]);
-  useEffect(() => {
-    if (customerId !== null) {
-      customerController.customerOne(customerId).then((CustomerData) => {
-        setCustomerData(CustomerData);
-      });
-    }
-  }, [customerId]);
-
-  useEffect(() => {
-    if (companyData && companyData.name) {
-      setCompanyValue(companyData.name);
-    }
-  }, [companyData]);
-  useEffect(() => {
-    if (customerData && customerData.name) {
-      setCustomerValue(customerData.name);
-    }
-  }, [customerData]);
+  // const [companyId, setCompanyId] = useState<any>(null);
+  // const [companyData, setCompanyData] = useState<MyObjectType>();
+  // const [customerId, setCustomerId] = useState<any>(null);
+  // const [customerData, setCustomerData] = useState<MyObjectType>();
+  // useEffect(() => {
+  //   if (data) {
+  //     if (data.company_id === null) {
+  //       setCompanyId(null);
+  //     }
+  //     if (data.customer_id === null) {
+  //       setCustomerId(null);
+  //     }
+  //     const companyIdFromData = data.company_id;
+  //     const customerIdFromData = data.customer_id;
+  //     setCompanyId(companyIdFromData);
+  //     setCustomerId(customerIdFromData);
+  //   }
+  // }, [data]);
+  // useEffect(() => {
+  //   if (companyId !== null) {
+  //     companyController.companyOne(companyId).then((CompanyData) => {
+  //       setCompanyData(CompanyData);
+  //     });
+  //   }
+  // }, [companyId]);
+  // useEffect(() => {
+  //   if (customerId !== null) {
+  //     customerController.customerOne(customerId).then((CustomerData) => {
+  //       setCustomerData(CustomerData);
+  //     });
+  //   }
+  // }, [customerId]);
 
   const handleClickDelete = (id: any) => {
     if (id !== undefined) {
@@ -115,14 +104,14 @@ const UpdateEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       updateController.deleteUpdateController(id).then((data: any) => {
-        document.location.replace(`/#/updates/`);
+        navigate(-1);
       });
     }
   };
 
-  const [sol, setSol] = useState<any>(data?.solution);
+  // const [sol, setSol] = useState<any>(data?.solution);
 
-  const [fileIds, setFileIds] = useState([]);
+  // const [fileIds, setFileIds] = useState([]);
   const [imgname, setImgname] = useState<any>([]);
   function handlePaste(event: any) {
     // Обработка вставки из буфера обмена
@@ -135,10 +124,10 @@ const UpdateEdit = () => {
         formData.append("file", file);
         formData.append("shift_update_id", id);
         taskController.addTaskFile(formData).then((response) => {
-          const fileId = response.id;
+          // const fileId = response.id;
           const n = [response.file];
           setImgname((prev: any) => [...prev, ...n]);
-          setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
+          // setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
         });
       }
     }
@@ -146,7 +135,7 @@ const UpdateEdit = () => {
 
   return (
     <div>
-      {isSuper === "true" || inCharge == admin_id || inCharge == null ? (
+      {role !== "Checker" || inCharge == admin_id || inCharge == null ? (
         <Spin size="large" spinning={!data}>
           <Watermark style={{ height: "100%" }}>
             {status === "loading" ? (
@@ -181,36 +170,24 @@ const UpdateEdit = () => {
                           autoComplete="off"
                         >
                           <Row gutter={[16, 10]}>
-                            {companyId !== null && (
-                              <Col span={6}>
-                                <Form.Item
-                                  wrapperCol={{ span: "100%" }}
-                                  label="Company"
-                                >
-                                  {companyValue !== undefined && (
-                                    <Input
-                                      defaultValue={companyValue}
-                                      readOnly
-                                    />
-                                  )}
-                                </Form.Item>
-                              </Col>
-                            )}
-                            {customerId !== null && (
-                              <Col span={6}>
-                                <Form.Item
-                                  wrapperCol={{ span: "100%" }}
-                                  label="Customer"
-                                >
-                                  {customerValue !== undefined && (
-                                    <Input
-                                      defaultValue={customerValue}
-                                      readOnly
-                                    />
-                                  )}
-                                </Form.Item>
-                              </Col>
-                            )}
+                            <Col span={8}>
+                              <Form.Item
+                                wrapperCol={{ span: "100%" }}
+                                label="Company"
+                                name="company"
+                              >
+                                <Input readOnly />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item
+                                wrapperCol={{ span: "100%" }}
+                                label="Customer"
+                                name="customer"
+                              >
+                                <Input readOnly />
+                              </Form.Item>
+                            </Col>
                           </Row>
                         </Form>
                         <Form
@@ -238,10 +215,12 @@ const UpdateEdit = () => {
                                 name="solution"
                               >
                                 <TextArea
-                                  onChange={(e) => setSol(e.target.value)}
+                                // onChange={(e) => setSol(e.target.value)}
                                 />
                               </Form.Item>
                             </Col>
+                          </Row>
+                          <Row gutter={[16, 10]}>
                             <Col span={4}>
                               <Form.Item
                                 wrapperCol={{ span: "100%" }}
@@ -261,7 +240,7 @@ const UpdateEdit = () => {
                             </Col>
                           </Row>
                           <Form.Item>
-                            {isSuper !== "false" && (
+                            {role !== "Checker" && (
                               <Button
                                 type="primary"
                                 danger

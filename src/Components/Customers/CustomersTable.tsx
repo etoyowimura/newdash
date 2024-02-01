@@ -1,8 +1,8 @@
 import { Table } from "antd";
-import { useCompanyData } from "../../Hooks/Companies";
 import { TCustomer } from "../../types/Customer/TCustomer";
+import { isMobile, role } from "../../App";
+import { useNavigate } from 'react-router-dom'; 
 
-const isSuper = localStorage.getItem("isSuperUser");
 
 function CustomerTable({
   data,
@@ -11,11 +11,7 @@ function CustomerTable({
   data?: TCustomer[] | undefined;
   isLoading?: boolean;
 }) {
-  const CompanyData = useCompanyData({
-    name: undefined,
-    page: undefined,
-    is_active: undefined,
-  });
+  const navigate = useNavigate();
 
   type RowProps = {
     id: number;
@@ -24,20 +20,24 @@ function CustomerTable({
   const Row = (record: RowProps) => {
     return {
       onClick: () => {
-        isSuper !== "false" &&
-          document.location.replace(`/#/customers/${record.id}`);
+        role !== "Checker" &&
+          navigate(`/customers/${record.id}`);
       },
     };
   };
+  
   return (
     <div>
       <Table
         onRow={(record) => Row(record)}
         loading={isLoading}
+        size="middle"
+        pagination={{
+          pageSize: 15,
+        }}
         dataSource={data?.map((u, i) => ({
           ...u,
           no: i + 1,
-          company_id: CompanyData?.data?.find((company: any) => company.id === u?.company_id)?.name || "",
         }))}
         columns={[
           {
@@ -54,7 +54,7 @@ function CustomerTable({
           },
           {
             title: "Company",
-            dataIndex: "company_id",
+            dataIndex: "company",
           },
         ]}
       />

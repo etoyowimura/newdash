@@ -5,11 +5,15 @@ import { UploadOutlined } from "@ant-design/icons";
 import { taskController } from "../../API/LayoutApi/tasks";
 import { useCompanyData } from "../../Hooks/Companies";
 import { useCustomerByComanyData } from "../../Hooks/Customers";
+import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
+import { TUpdate } from "../../types/Update/TUpdate";
 const { Option } = Select;
 const AddUpdate = ({
   open,
   setOpen,
+  refetch,
 }: {
+  refetch: <TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined) => Promise<QueryObserverResult<TUpdate[], unknown>>;
   open: boolean;
   setOpen(open: boolean): void;
 }) => {
@@ -23,10 +27,11 @@ const AddUpdate = ({
   const [customerName, setCustomerName] = useState<string>("");
   const [companyId, setCompanyId] = useState<string>();
 
-  const companyData = useCompanyData({ name: companyName });
+  const companyData = useCompanyData({ name: companyName, is_active: true });
   const customerData = useCustomerByComanyData({
     id: companyId,
     name: customerName,
+    is_active: true,
   });
 
 
@@ -72,7 +77,7 @@ const AddUpdate = ({
             form.resetFields();
             await updateController.addUpdateController(updatedValues);
             setOpen(!open);
-            window.location.reload();
+            refetch()
           });
         }}
       >
@@ -173,9 +178,9 @@ const AddUpdate = ({
               }}
             >
               <p className="ant-upload-drag-icon">
-                <UploadOutlined style={{ color: "#36cfc9" }} />
+                <UploadOutlined style={{ color: "#ffb94a" }} />
               </p>
-              <p className="ant-upload-text" style={{ color: "#36cfc9" }}>
+              <p className="ant-upload-text" style={{ color: "#ffb94a" }}>
                 Click or drag file to this area to upload
               </p>
             </Upload.Dragger>

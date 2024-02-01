@@ -24,14 +24,12 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-import { useServiceData, useServiceOne } from "../../Hooks/Services";
+import { useServiceData } from "../../Hooks/Services";
 import Table from "antd/es/table";
 import { useTeamData } from "../../Hooks/Teams";
 import { Switch } from "antd";
-import moment from "moment";
-import { useCompanyOne } from "../../Hooks/Companies";
-import { useCustomerOne } from "../../Hooks/Customers";
 import { AttachmentSet } from "../../types/Tasks/TTasks";
+import { admin_id, role, timeZone } from "../../App";
 
 const { Option } = Select;
 const TabPane = Tabs.TabPane;
@@ -40,6 +38,7 @@ type params = {
 };
 
 const TaskEdit = () => {
+  const moment = require("moment-timezone");
   const [inCharge, setInChage] = useState<any>();
   const [adminData, setAdminData] = useState<AttachmentSet[]>([]);
   const [superData, setSuperData] = useState<AttachmentSet[]>([]);
@@ -48,25 +47,18 @@ const TaskEdit = () => {
   const { id } = useParams<params>();
   const { data, refetch, status } = useTaskOne(id);
 
-  const isSuper = localStorage.getItem("isSuperUser");
-  const admin_id = localStorage.getItem("admin_id");
-
-  const companyData = useCompanyOne(data?.company_id);
-  const customerData = useCustomerOne(data?.customer_id);
-  const serviceData = useServiceOne(data?.service_id);
-
   const ServiceData = useServiceData();
   const TeamData = useTeamData("");
   const historyData = useTaskHistory(id);
 
   useEffect(() => {
-    if (data?.in_charge_id) {
-      setInChage(data.in_charge_id);
+    if (data?.in_charge?.id) {
+      setInChage(data.in_charge.id);
     }
     setAdminData([]);
     setSuperData([]);
-    data?.attachment_set?.map((item) => {
-      if (item.uploaded_by == data.in_charge_id) {
+    data?.attachment_set?.forEach((item) => {
+      if (item.uploaded_by === data.in_charge?.id) {
         setAdminData((prev) => [...prev, item]);
       } else {
         setSuperData((prev) => [...prev, item]);
@@ -76,9 +68,8 @@ const TaskEdit = () => {
 
   const onSubmit = async (value: any) => {
     await taskController.taskPatch(value, id);
-    refetch();
     navigate(-1);
-    // document.location.replace("/");
+    refetch();
   };
   const handleClickDelete = (id: any) => {
     if (id !== undefined) {
@@ -93,13 +84,11 @@ const TaskEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       taskController.deleteTaskController(id).then((data: any) => {
-        document.location.replace(`/`);
+        navigate(-1);
       });
     }
   };
 
-  const [fileIds, setFileIds] = useState([]);
-  const [imgname, setImgname] = useState<any>([]);
   function handlePaste(event: any) {
     const clipboardData = event.clipboardData || window.Clipboard;
     if (clipboardData && clipboardData.items.length > 0) {
@@ -109,11 +98,7 @@ const TaskEdit = () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("task_id", id);
-        taskController.addTaskFile(formData).then((response) => {
-          const fileId = response.id;
-          const n = [response.file];
-          setImgname((prev: any) => [...prev, ...n]);
-          setFileIds((prevFileIds): any => [...prevFileIds, fileId]);
+        taskController.addTaskFile(formData).then(() => {
           refetch();
         });
       }
@@ -131,7 +116,7 @@ const TaskEdit = () => {
 
   return (
     <div>
-      {isSuper === "true" || inCharge == admin_id || inCharge == null ? (
+      {role !== "Checker" || inCharge === admin_id || inCharge == null ? (
         <Spin size="large" spinning={!data}>
           <Watermark style={{ height: "100%" }}>
             {status === "loading" ? (
@@ -166,32 +151,24 @@ const TaskEdit = () => {
                           autoComplete="off"
                         >
                           <Row gutter={[16, 10]}>
-                            {companyData?.data && (
-                              <Col span={6}>
-                                <Form.Item
-                                  wrapperCol={{ span: "100%" }}
-                                  label="Company"
-                                >
-                                  <Input
-                                    defaultValue={companyData?.data?.name}
-                                    readOnly
-                                  />
-                                </Form.Item>
-                              </Col>
-                            )}
-                            {customerData?.data && (
-                              <Col span={6}>
-                                <Form.Item
-                                  wrapperCol={{ span: "100%" }}
-                                  label="Customer"
-                                >
-                                  <Input
-                                    defaultValue={customerData?.data?.name}
-                                    readOnly
-                                  />
-                                </Form.Item>
-                              </Col>
-                            )}
+                            <Col span={8}>
+                              <Form.Item
+                                wrapperCol={{ span: "100%" }}
+                                label="Company"
+                                name="company"
+                              >
+                                <Input readOnly />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item
+                                wrapperCol={{ span: "100%" }}
+                                label="Customer"
+                                name="customer"
+                              >
+                                <Input readOnly />
+                              </Form.Item>
+                            </Col>
                           </Row>
                         </Form>
                         <Form
@@ -203,7 +180,7 @@ const TaskEdit = () => {
                           autoComplete="off"
                         >
                           <Row gutter={[16, 10]}>
-                            {isSuper !== "false" && ServiceData?.data && (
+                            {role !== "Checker" && ServiceData?.data && (
                               <Col span={8}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
@@ -211,6 +188,7 @@ const TaskEdit = () => {
                                   name="service_id"
                                 >
                                   <Select
+                                    defaultValue={data.service?.title}
                                     options={ServiceData?.data?.map((item) => ({
                                       label: item?.title,
                                       value: item?.id,
@@ -219,29 +197,29 @@ const TaskEdit = () => {
                                 </Form.Item>
                               </Col>
                             )}
-                            {isSuper === "false" && (
+                            {role === "Checker" && (
                               <Col span={8}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
                                   label="Service"
+                                  name="service_id"
                                 >
-                                  {serviceData?.data && (
-                                    <Input
-                                      defaultValue={serviceData?.data?.title}
-                                      readOnly
-                                    />
-                                  )}
+                                  <Input
+                                    defaultValue={data?.service?.title}
+                                    readOnly
+                                  />
                                 </Form.Item>
                               </Col>
                             )}
-                            {isSuper !== "false" && (
-                              <Col span={4}>
+                            {role !== "Checker" && (
+                              <Col span={8}>
                                 <Form.Item
                                   wrapperCol={{ span: "100%" }}
                                   label="Assigned to"
                                   name="assigned_to_id"
                                 >
                                   <Select
+                                    defaultValue={data.assigned_to?.name}
                                     options={TeamData?.data?.map((item) => ({
                                       label: item?.name,
                                       value: item?.id,
@@ -252,7 +230,7 @@ const TaskEdit = () => {
                             )}
                           </Row>
                           <Row gutter={[16, 10]}>
-                            <Col span={4}>
+                            <Col span={8}>
                               <Form.Item
                                 wrapperCol={{ span: "100%" }}
                                 label="Note"
@@ -261,7 +239,7 @@ const TaskEdit = () => {
                                 <Input />
                               </Form.Item>
                             </Col>
-                            <Col span={4}>
+                            <Col span={8}>
                               <Form.Item
                                 wrapperCol={{ span: "100%" }}
                                 label="Status"
@@ -274,7 +252,9 @@ const TaskEdit = () => {
                                 </Select>
                               </Form.Item>
                             </Col>
-                            <Col span={4}>
+                          </Row>
+                          <Row gutter={[16, 10]}>
+                            <Col span={2}>
                               <Form.Item
                                 wrapperCol={{ span: "100%" }}
                                 label="PTI"
@@ -285,7 +265,7 @@ const TaskEdit = () => {
                             </Col>
                           </Row>
                           <Form.Item>
-                            {isSuper !== "false" && (
+                            {role !== "false" && (
                               <Button
                                 type="primary"
                                 danger
@@ -358,7 +338,7 @@ const TaskEdit = () => {
                                       >
                                         <img
                                           src={item.file_path}
-                                          alt="Image Preview"
+                                          alt=""
                                           style={{ width: "100%" }}
                                         />
                                       </a>
@@ -428,7 +408,7 @@ const TaskEdit = () => {
                                       >
                                         <img
                                           src={item.file_path}
-                                          alt="Image Preview"
+                                          alt=""
                                           style={{ width: "100%" }}
                                         />
                                       </a>
@@ -464,7 +444,10 @@ const TaskEdit = () => {
                             justifyContent: "space-between",
                           }}
                         >
-                          <Col span={18}>
+                          <Col
+                            span={18}
+                            style={{ margin: "auto", borderColor: "#cecece" }}
+                          >
                             <Form.Item label="" name="attachment">
                               <Upload.Dragger
                                 name="file"
@@ -483,10 +466,16 @@ const TaskEdit = () => {
                                 <p className="ant-upload-drag-icon">
                                   <InboxOutlined />
                                 </p>
-                                <p className="ant-upload-text">
+                                <p
+                                  className="ant-upload-text"
+                                  style={{ color: "#cecece" }}
+                                >
                                   Click or drag file to this area to upload
                                 </p>
-                                <p className="ant-upload-hint">
+                                <p
+                                  className="ant-upload-hint"
+                                  style={{ color: "#cecece", fontWeight: 300 }}
+                                >
                                   Support for a single or bulk upload. Strictly
                                   prohibited from uploading company data or
                                   other banned files.
@@ -496,11 +485,6 @@ const TaskEdit = () => {
                           </Col>
                         </Row>
                       </div>
-                      <Form.Item>
-                        <Button type="primary" htmlType="submit">
-                          Save
-                        </Button>
-                      </Form.Item>
                     </TabPane>
                     <TabPane
                       tab={
@@ -515,9 +499,9 @@ const TaskEdit = () => {
                         dataSource={historyData?.data?.map((u, i) => ({
                           ...u,
                           no: i + 1,
-                          timestamp: moment(u?.timestamp).format(
-                            "DD.MM.YYYY, HH:mm"
-                          ),
+                          timestamp: moment(u?.timestamp)
+                            .tz(timeZone)
+                            .format("DD.MM.YYYY, HH:mm"),
                           key: u?.id,
                         }))}
                         columns={[

@@ -1,4 +1,4 @@
-import { Button, Modal, Space, Table, Tooltip } from "antd";
+import { Button, Modal, Space, Table, Tag, Tooltip } from "antd";
 import "../../App.css";
 import { useEffect, useState } from "react";
 import { taskController } from "../../API/LayoutApi/tasks";
@@ -9,15 +9,9 @@ import {
   QueryObserverResult,
   RefetchOptions,
   RefetchQueryFilters,
-  UseQueryResult,
 } from "react-query";
-import { TCompany } from "../../types/Company/TCompany";
-import { TService } from "../../types/Service/TService";
-import { TCustomer } from "../../types/Customer/TCustomer";
-import { TUser } from "../../types/User/TUser";
+import { admin_id, isMobile, role, timeZone } from "../../App";
 
-const admin_id = localStorage.getItem("admin_id");
-const isSuper = localStorage.getItem("isSuperUser");
 const TaskTable = ({
   data,
   isLoading,
@@ -25,17 +19,13 @@ const TaskTable = ({
 }: {
   data: {
     characters: TTask[] | undefined;
-    CompanyData: UseQueryResult<TCompany[], unknown>;
-    CustomerData: UseQueryResult<TCustomer[], unknown>;
-    ServiceData: UseQueryResult<TService[], unknown>;
-    AdminData: UseQueryResult<TUser[], unknown>;
   };
   isLoading: boolean;
   refetch: <TPageData>(
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TPagination<TTask[]>, unknown>>;
 }) => {
-  const moment = require('moment')
+  const moment = require("moment-timezone");
   const statusClick = (record: any) => {
     if (record.status === "New") {
       Modal.confirm({
@@ -45,7 +35,7 @@ const TaskTable = ({
           const value = {
             status: "Checking",
           };
-          taskController.taskPatch(value, record.id);
+          taskController.taskPatch(value, record?.id);
         },
       });
     }
@@ -57,12 +47,11 @@ const TaskTable = ({
           const value = {
             status: "Done",
           };
-          taskController.taskPatch(value, record.id);
+          taskController.taskPatch(value, record?.id);
         },
       });
     }
   };
-
   const rowClassName = (record: TTask) => {
     if (record.status === "New") {
       return "new-status-row";
@@ -92,48 +81,40 @@ const TaskTable = ({
     }
     if (
       event.target.classList.contains("ant-table-cell") &&
-      (record.in_charge_id === null ||
-        (!!admin_id && record.in_charge_id === +admin_id) ||
-        isSuper === "true")
+      (record.in_charge?.id === null ||
+        (!!admin_id && record.in_charge?.id === admin_id) ||
+        role !== "Checker")
     ) {
-      navigate(`/${record.id}`);
+      navigate(`/tasks/${record?.id}`);
     }
   };
-
   return (
     <div>
       <Table
         onRow={(record) => ({
           onClick: (event) => handleRowClick(record, event),
         })}
-        dataSource={data?.characters?.map((u, i) => ({
-          ...u,
-          no: i + 1,
-          company_name: (data.CompanyData?.data || []).find(
-            (company) => company.id === u?.company_id
-          )?.name,
-          customer_name: (data.CustomerData?.data || []).find(
-            (customer) => customer.id === u?.customer_id
-          )?.name,
-          service_title: (data.ServiceData?.data || []).find(
-            (service) => service.id === u?.service_id
-          )?.title,
-          in_charge_name: (data.AdminData?.data || []).find(
-            (admin) => admin.id === u.in_charge_id
-          )?.username,
-          created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
-          key: u?.id
-        }))}
+        dataSource={data?.characters?.map((u, i) => {
+          const convertedTimestamp = moment(u?.created_at).tz(timeZone);
+
+          return {
+            ...u,
+            no: i + 1,
+            service_title: u?.service?.title,
+            in_charge_name: u?.in_charge?.username,
+            created: convertedTimestamp.format("DD.MM.YYYY HH:mm"),
+            key: u?.id,
+          };
+        })}
         columns={[
           {
             title: "No",
             dataIndex: "no",
-            width: "5%",
-            fixed: "left",
+            width: "4%",
           },
           {
             title: "Company",
-            dataIndex: "company_name",
+            dataIndex: "company",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -146,7 +127,7 @@ const TaskTable = ({
           },
           {
             title: "Customer",
-            dataIndex: "customer_name",
+            dataIndex: "customer",
             width: "13%",
             ellipsis: {
               showTitle: false,
@@ -169,7 +150,11 @@ const TaskTable = ({
               showTitle: false,
             },
             render: (status: string) => (
-              <span className={`status-${status.toLowerCase()}`}>{status}</span>
+              <span>
+                {status === "Done" && <Tag className="tagz" color="green">Done</Tag>}
+                {status === "Checking" && <Tag className="tagz" color="gold">Checking</Tag>}
+                {status === "New" && <Tag className="tagz" color="blue">New</Tag>}
+              </span>
             ),
           },
           {
@@ -208,20 +193,21 @@ const TaskTable = ({
             title: "Created at",
             dataIndex: "created",
             width: "12%",
+            ellipsis: {
+              showTitle: false,
+            },
           },
           {
             title: "Actions",
             dataIndex: "action",
-            fixed: "right",
             width: "8%",
             render: (text, record) => {
               return (
                 <div>
-                  {isSuper === "false" ? (
+                  {role === "Checker" ? (
                     <Space>
                       {record.status === "New" && (
                         <Button
-                          type="primary"
                           style={{ background: "#595959" }}
                           onClick={() => statusClick(record)}
                         >
@@ -230,9 +216,8 @@ const TaskTable = ({
                       )}
                       {record.status === "Checking" &&
                         !!admin_id &&
-                        record.in_charge_id === +admin_id && (
+                        record.in_charge?.id === admin_id && (
                           <Button
-                            type="primary"
                             style={{ background: "#595959" }}
                             onClick={() => statusClick(record)}
                           >
@@ -249,8 +234,8 @@ const TaskTable = ({
                           const shouldDelete = window.confirm(
                             "Вы уверены, что хотите удалить эту задачу?"
                           );
-                          if (shouldDelete && record.id !== undefined) {
-                            taskController.deleteTaskController(record.id);
+                          if (shouldDelete && record?.id !== undefined) {
+                            taskController.deleteTaskController(record?.id);
                           }
                         }}
                       >
@@ -263,9 +248,10 @@ const TaskTable = ({
             },
           },
         ]}
+        size="small"
         scroll={{ x: "calc(800px + 40%)" }}
         rowClassName={rowClassName}
-        pagination={false}
+        pagination={isMobile ? undefined : false}
         loading={isLoading}
       />
     </div>

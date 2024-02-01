@@ -9,10 +9,10 @@ export const useCustomerData = ({name, page, is_active} : TCustomerGetParams) =>
   );
 };
 
-export const useCustomerByComanyData = ({name, id} : TCustomerByCompanyGetParams) => {
+export const useCustomerByComanyData = ({name, id, is_active} : TCustomerByCompanyGetParams) => {
   return useQuery(
-    [`customers-by-company/${id}`, name],
-    () => customerController.customerByCompany(id, name),
+    [`customers-by-company/${id}`, name, is_active],
+    () => customerController.customerByCompany(id, name, is_active),
     { refetchOnWindowFocus: false }
   );
 };

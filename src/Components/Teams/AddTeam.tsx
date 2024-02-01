@@ -1,5 +1,7 @@
-import { Input, Modal, Form as FormAnt, Switch } from "antd";
+import { useState } from "react";
+import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
 import { teamController } from "../../API/LayoutApi/teams";
+import { useUserData } from "../../Hooks/Users";
 
 const AddTeam = ({  
   open,
@@ -11,16 +13,17 @@ const AddTeam = ({
   refetch(): void;
 }) => {
   const [form] = FormAnt.useForm();
-
   const handleCancel = () => {
     setOpen(!open);
   };
+const [team, setTeam] = useState('');
+  const {data} = useUserData({name: '',team: team, role: 'Checker'});
 
   return (
     <div>
       <Modal
         open={open}
-        title="Add team"
+        title="Add new team"
         okText="Create"
         cancelText="Cancel"
         onCancel={handleCancel}
@@ -33,7 +36,7 @@ const AddTeam = ({
               setOpen(!open);
               refetch();
             })
-            .catch((info) => {
+            .catch(() => {
               refetch();
             });
         }}
@@ -54,12 +57,16 @@ const AddTeam = ({
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-            label="Is Active"
-            name="is_active"
+            label="Include users to this team"
+            name="user_ids"
             rules={[{ required: false, message: "Please input company status!" }]}
           >
-            <Switch defaultChecked={true} />
+            <Select mode="multiple" options={data?.map((items) => ({
+              label: items.username,
+              value: items.id,
+            }))}/>
           </FormAnt.Item>
+
         </FormAnt>
       </Modal>
     </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTeamOne } from "../../Hooks/Teams";
 import {
@@ -11,12 +11,14 @@ import {
   Col,
   Input,
   Button,
-  Switch,
+  Table,
 } from "antd";
 import { teamController } from "../../API/LayoutApi/teams";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-const isSuper = localStorage.getItem("isSuperUser");
+import { role } from "../../App";
+import { useUserData } from "../../Hooks/Users";
+import AddUserToTeam from "./AddUserToTeam";
 const TabPane = Tabs.TabPane;
 
 type params = {
@@ -34,7 +36,7 @@ const TeamEdit = () => {
   const onSubmit = async (value: any) => {
     await teamController.teamPatch(value, id);
     refetch();
-    document.location.replace('/#/teams/')
+    navigate(-1);
   };
 
   const ClickDelete = () => {
@@ -43,11 +45,18 @@ const TeamEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       teamController.deleteTeamController(id).then((data: any) => {
-        document.location.replace(`/#/teams`);
+        navigate(-1);
       });
     }
   };
-  
+
+  const userData = useUserData({ name: '', team: id });
+
+  const [open, setOpen] = useState(false);
+  const showModal = () => {
+    setOpen(true);
+  };
+
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -96,11 +105,11 @@ const TeamEdit = () => {
                           </Col>
                         </Row>
                         <Form.Item>
-                        {isSuper === "true" && (
+                          {role !== "Checker" && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"
-                              style={{marginRight: 10}}
+                              style={{ marginRight: 10 }}
                               danger
                             >
                               Delete
@@ -112,6 +121,49 @@ const TeamEdit = () => {
                         </Form.Item>
                       </Form>
                     </Space>
+                  </TabPane>
+                  <TabPane
+                    tab={
+                      <span>
+                        <FormOutlined />
+                        Users
+                      </span>
+                    }
+                    key="2"
+                  >
+                    <Table
+                      dataSource={userData?.data?.map((item, i) => ({
+                        no: i + 1,
+                        ...item,
+                      }))}
+                      columns={[
+                        {
+                          title: "No",
+                          dataIndex: "no",
+                        },
+                        {
+                          title: "Username",
+                          dataIndex: "username",
+                        },
+                        {
+                          title: "First name",
+                          dataIndex: "first_name",
+                        },
+                        {
+                          title: "Last name",
+                          dataIndex: "last_name",
+                        },
+                      ]}
+                    />
+                    <AddUserToTeam team={id} refetch={refetch} open={open} setOpen={setOpen} />
+                    <Button
+                      type="primary"
+                      style={{ marginLeft: "auto" }}
+                      size={"large"}
+                      onClick={showModal}
+                    >
+                      Add User
+                    </Button>
                   </TabPane>
                 </Tabs>
               </Space>

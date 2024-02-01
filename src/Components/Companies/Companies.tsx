@@ -5,8 +5,8 @@ import CompanyTable from "./CompaniesTable";
 import Search from "antd/es/input/Search";
 
 import { useCompanyData } from "../../Hooks/Companies";
+import { isMobile } from "../../App";
 
-const isSuper = localStorage.getItem("isSuperUser");
 const Company = () => {
   const [open, setOpen] = useState(false);
   const showModal = () => {
@@ -35,27 +35,28 @@ const Company = () => {
             placeholder={"Search Company"}
             onChange={(event) => setName(event.target.value)}
             value={name}
+            size={isMobile ? "small" : "middle"}
           />
         </div>
-        <Radio.Group
-          onChange={(e: RadioChangeEvent) => setIsActive(e.target.value)}
-          size="middle"
-          value={isActive}
-          style={{ marginLeft: 20 }}
-        >
-          <Radio.Button value={""}>All</Radio.Button>
-          <Radio.Button value={true}>Active</Radio.Button>
-          <Radio.Button value={false}>Inactive</Radio.Button>
-        </Radio.Group>
-
+            {!isMobile && (<Radio.Group
+              onChange={(e: RadioChangeEvent) => setIsActive(e.target.value)}
+              size="middle"
+              value={isActive}
+              style={{ marginLeft: 20 }}
+            >
+              <Radio.Button value={""}>All</Radio.Button>
+              <Radio.Button value={true}>Active</Radio.Button>
+              <Radio.Button value={false}>Inactive</Radio.Button>
+            </Radio.Group>
+            )}
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"middle"}
+          size={isMobile ? 'small' : "middle"}
           onClick={showModal}
-          disabled={isSuper === "false"}
+          // disabled={}
         >
-          Add Company
+          Add
         </Button>
       </span>
 

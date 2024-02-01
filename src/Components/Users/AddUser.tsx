@@ -1,26 +1,30 @@
-import { Input, Modal, Form as FormAnt, Switch, Select } from "antd";
-import { userController } from "../../API/LayoutApi/users";
-import { useTeamData } from "../../Hooks/Teams";
-import { useState } from "react";
-import { InfoCircleOutlined } from "@ant-design/icons";
-import { message } from "antd";
+import { Input, Modal, Form as FormAnt, Select } from "antd";
 import { useRoleData } from "../../Hooks/Role";
+import {
+  QueryObserverResult,
+  RefetchOptions,
+  RefetchQueryFilters,
+} from "react-query";
+import { TUser } from "../../types/User/TUser";
+import { inviteVerify } from "../../API/auth/invite";
 
 const AddUser = ({
   open,
   setOpen,
+  refetch,
 }: {
+  refetch: <TPageData>(
+    options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
+  ) => Promise<QueryObserverResult<TUser[], unknown>>;
   open: boolean;
   setOpen(open: boolean): void;
 }) => {
   const [form] = FormAnt.useForm();
-  const [showInfo, setShowInfo] = useState(true);
   const handleCancel = () => {
     setOpen(!open);
   };
-  const TeamData = useTeamData('');
-
   const roleData = useRoleData();
+  const filteredRoleData = roleData?.data?.filter(role => role.name !== 'Owner');
 
   return (
     <div>
@@ -36,15 +40,10 @@ const AddUser = ({
               values.groups = [values.groups];
             }
             form.resetFields();
-            await userController.addUserController(values).then((data: any) => {
-              const formattedPassword = data.data.password;
-              if (formattedPassword) {
-                for (var i = 0; i < formattedPassword.length; i++) {
-                  message.error({ content: formattedPassword[i] });
-                }
-              }
-            });
+            delete values.Confirm;
+            inviteVerify(values);
             setOpen(!open);
+            refetch();
           });
         }}
       >
@@ -55,109 +54,29 @@ const AddUser = ({
           initialValues={{ modifier: "public" }}
         >
           <FormAnt.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: "Username is required!" }]}
+            label="E-mail"
+            name="email"
+            rules={[
+              { required: true },
+              {
+                type: "email",
+                message: "The input is not valid E-mail!",
+              },
+            ]}
           >
             <Input />
           </FormAnt.Item>
           <FormAnt.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "password is required!" }]}
-          >
-            <div className="input-container" style={{ width: "100%" }}>
-              <Input
-                type="password"
-                addonAfter={
-                  <span
-                    className="info-icon-container"
-                    onMouseEnter={() => setShowInfo(true)}
-                    onMouseLeave={() => setShowInfo(true)}
-                  >
-                    <InfoCircleOutlined
-                      className="info-icon"
-                      style={{ color: "blue" }}
-                    />
-                  </span>
-                }
-              />
-            </div>
-            {showInfo && (
-              <ul
-                className="info-container"
-                style={{
-                  position: "absolute",
-                  top: -4,
-                  padding: 20,
-                  width: 300,
-                  background: "#fff",
-                  marginLeft: 420,
-                  borderRadius: 10,
-                }}
-              >
-                <li
-                  style={{
-                    fontSize: 11,
-                    fontStyle: "italic",
-                    fontWeight: 300,
-                    listStyle: "",
-                  }}
-                >
-                  Your password can’t be too similar to your other personal
-                  information
-                </li>
-                <li
-                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
-                >
-                  Your password must contain at least 8 characters.
-                </li>
-                <li
-                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
-                >
-                  Your password can’t be a commonly used password.
-                </li>
-                <li
-                  style={{ fontSize: 11, fontStyle: "italic", fontWeight: 300 }}
-                >
-                  Your password can’t be entirely numeric.
-                </li>
-              </ul>
-            )}
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="Password Confirmation"
-            name="password"
-            rules={[{ required: true, message: "password is required!" }]}
-          >
-            <Input type="password" />
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="Team"
-            name="team_id"
-            rules={[{ required: false }]}
+            label="Role"
+            name="role_id"
+            rules={[{ required: true }]}
           >
             <Select
-              options={TeamData?.data?.map((item) => ({
-                label: item?.name,
-                value: item?.id,
+              options={filteredRoleData?.map(role => ({
+                label: role.name,
+                value: role.id,
               }))}
             />
-          </FormAnt.Item>
-          <FormAnt.Item label="Role" name="groups" rules={[{ required: true }]}>
-            <Select
-              options={roleData?.data?.map((item) => ({
-                label: item?.name,
-                value: item?.id,
-              }))}
-            />
-          </FormAnt.Item>
-          <FormAnt.Item
-            label="Is Active"
-            name="is_active"
-            rules={[{ required: false }]}
-          >
-            <Switch defaultChecked={true} />
           </FormAnt.Item>
         </FormAnt>
       </Modal>

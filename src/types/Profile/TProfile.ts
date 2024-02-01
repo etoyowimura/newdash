@@ -8,10 +8,11 @@ export type TProfile = {
 }
 
 export type TMystats = {
-    todays_points:        number;
-    yesterdays_points:    number;
-    last_month_points:    number;
-    current_month_points: number;
+    daily_stats: Array<object>;
+    total_for_period: number;
+    avg_stats_for_period: number
+    period: number;
+    contribution: number;
 }
 
 export type TMyTaskHistory = {

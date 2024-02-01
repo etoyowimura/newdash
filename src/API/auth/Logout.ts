@@ -7,11 +7,11 @@ export const LogoutApi = async () => {
         await instance("auth/logout/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            data: {refresh_token: localStorage.getItem('refresh_token')  }
         });
-        localStorage.removeItem("token");
-        localStorage.setItem("isSuperUser", 'empty');
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
-        // localStorage.removeItem("fmcsa_count");
         localStorage.removeItem("admin_id");
         document.location.replace("/");
     } catch (err) {

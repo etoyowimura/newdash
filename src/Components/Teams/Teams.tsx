@@ -4,18 +4,9 @@ import AddTeam from "./AddTeam";
 import { Button } from "antd";
 import TeamTable from "./TeamTable";
 
-type Data = {
-  data?: {
-    data: Array<any>;
-    count: number | string;
-  };
-  isLoading?: boolean;
-  refetch?: any;
-  isFetching?: boolean;
-};
+
 const Team = () => {
-  const [name, setName] = useState<string>('')
-  const { data, isLoading, refetch } = useTeamData(name);
+  const { data, isLoading, refetch } = useTeamData('');
   const [open, setOpen] = useState(false);
   const showModal = () => {
     setOpen(true);
@@ -35,10 +26,10 @@ const Team = () => {
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={"middle"}
           onClick={showModal}
         >
-          Add Team
+          Add
         </Button>
       </span>
 

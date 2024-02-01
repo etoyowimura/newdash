@@ -15,13 +15,13 @@ import { customerController } from "../../API/LayoutApi/customers";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useCompanyOne } from "../../Hooks/Companies";
+import { role } from "../../App";
 
 const TabPane = Tabs.TabPane;
 
 type params = {
   readonly id: any;
 };
-const isSuper = localStorage.getItem("isSuperUser");
 
 const CustomerEdit = () => {
   const { id } = useParams<params>();
@@ -33,16 +33,13 @@ const CustomerEdit = () => {
     window.location.replace('/#/customers/')
   };
 
-  const companyData = useCompanyOne(data?.id);
-  console.log(companyData);
-
   const ClickDelete = () => {
     const shouldDelete = window.confirm(
       "Вы уверены, что хотите удалить этот customer?"
     );
     if (shouldDelete && id !== undefined) {
       customerController.deleteCustomerController(id).then((data: any) => {
-        document.location.replace(`/#/customers`);
+        navigate(-1)
       });
     }
   };
@@ -103,20 +100,19 @@ const CustomerEdit = () => {
                             </Form.Item>
                           </Col>
                         </Row>
-                        {companyData?.data && (
                           <Row gutter={[16, 10]}>
                           <Col span={6}>
                             <Form.Item
                               wrapperCol={{ span: "100%" }}
                               label="Company"
+                              name='company'
                             >
-                              <Input defaultValue={companyData?.data?.name} readOnly />
+                              <Input readOnly />
                             </Form.Item>
                           </Col>
                         </Row>
-                        )}
                         <Form.Item>
-                          {isSuper === "true" && (
+                          {(role === "Tech Support" || "Owner") && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"

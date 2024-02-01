@@ -3,11 +3,15 @@ import { customerController } from "../../API/LayoutApi/customers";
 import { useState } from "react";
 
 import { useCompanyData } from "../../Hooks/Companies";
+import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from "react-query";
+import { TCustomer } from "../../types/Customer/TCustomer";
 
 const AddCustomer = ({
   open,
   setOpen,
+  refetch,
 }: {
+  refetch: <TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined) => Promise<QueryObserverResult<TCustomer[], unknown>>;
   open: boolean;
   setOpen(open: boolean): void;
 }) => {
@@ -34,7 +38,7 @@ const AddCustomer = ({
             form.resetFields();
             await customerController.addCustomerController(values);
             setOpen(!open);
-            window.location.reload();
+            refetch()
           });
         }}
       >

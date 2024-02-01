@@ -4,8 +4,8 @@ import { Button, Radio, RadioChangeEvent } from "antd";
 import CustomerTable from "./CustomersTable";
 import Search from "antd/es/input/Search";
 import { useCustomerData } from "../../Hooks/Customers";
+import { isMobile, role } from "../../App";
 
-const isSuper = localStorage.getItem("isSuperUser");
 const Customer = () => {
   const [open, setOpen] = useState(false);
 
@@ -13,10 +13,12 @@ const Customer = () => {
     setOpen(true);
   };
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [isActive, setIsActive] = useState<boolean>();
-  const {isLoading, data} = useCustomerData({name:name, is_active:isActive})
-
+  const { isLoading, data, refetch } = useCustomerData({
+    name: name,
+    is_active: isActive,
+  });
 
   return (
     <div>
@@ -25,43 +27,43 @@ const Customer = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 6
+          marginBottom: 6,
         }}
       >
-        {open && <AddCustomer open={open} setOpen={setOpen} />}
-        <div className="search">
-          <Search
-            type="text"
-            placeholder={"Search Customer"}
-            onChange={(event) => setName(event.target.value)}
-            value={name}
-          />
-        </div>
-        <Radio.Group
-          onChange={(e: RadioChangeEvent) => setIsActive(e.target.value)}
-          size="middle"
-          value={isActive}
-          style={{ marginLeft: 20 }}
-        >
-          <Radio.Button value={undefined}>All</Radio.Button>
-          <Radio.Button value={true}>Active</Radio.Button>
-          <Radio.Button value={false}>Inactive</Radio.Button>
-        </Radio.Group>
+        {open && (
+          <AddCustomer refetch={refetch} open={open} setOpen={setOpen} />
+        )}
+            <div className="search">
+              <Search
+                type="text"
+                placeholder={"Search Customer"}
+                onChange={(event) => setName(event.target.value)}
+                value={name}
+                size={isMobile ? "small" : "middle"}
+              />
+            </div>
+            {!isMobile && (<Radio.Group
+              onChange={(e: RadioChangeEvent) => setIsActive(e.target.value)}
+              size="middle"
+              value={isActive}
+              style={{ marginLeft: 20 }}
+            >
+              <Radio.Button value={undefined}>All</Radio.Button>
+              <Radio.Button value={true}>Active</Radio.Button>
+              <Radio.Button value={false}>Inactive</Radio.Button>
+            </Radio.Group>)}
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={isMobile ? 'small' : "middle"}
           onClick={showModal}
-          disabled={isSuper === "false"}
+          disabled={role === "Checker"}
         >
-          Add Customer
+          Add
         </Button>
       </span>
 
-      <CustomerTable
-        data={data}
-        isLoading={isLoading}
-      />
+      <CustomerTable data={data} isLoading={isLoading} />
     </div>
   );
 };

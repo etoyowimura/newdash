@@ -1,8 +1,4 @@
-import { Button, Space, Table, Tooltip } from "antd";
-import moment from "moment";
-import { useCompanyData } from "../../Hooks/Companies";
-import { useCustomerData } from "../../Hooks/Customers";
-import { useUserData } from "../../Hooks/Users";
+import { Button, Space, Table, Tag, Tooltip } from "antd";
 import { updateController } from "../../API/LayoutApi/update";
 import { CloseCircleOutlined } from "@ant-design/icons";
 import { BsPinAngle } from "react-icons/bs";
@@ -13,6 +9,8 @@ import {
 } from "react-query";
 import { TUpdate } from "../../types/Update/TUpdate";
 import { useEffect, useState } from "react";
+import { timeZone } from "../../App";
+import { useNavigate } from 'react-router-dom';
 
 const UpdateTable = ({
   data = [],
@@ -25,16 +23,15 @@ const UpdateTable = ({
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TUpdate[], unknown>>;
 }) => {
+  const moment = require("moment-timezone");
+  const navigate = useNavigate();
+
   const rowClassName = (record: TUpdate) => {
     if (record.is_pinned === true) {
       return "new-status-row";
     }
     return "";
   };
-
-  const CompanyData = useCompanyData({});
-  const CustomerData = useCustomerData({});
-  const AdminData = useUserData({});
 
   const [isTextSelected, setIsTextSelected] = useState(false);
 
@@ -56,32 +53,21 @@ const UpdateTable = ({
       return;
     }
     if (event.target.classList.contains("ant-table-cell")) {
-      document.location.replace(`/#/updates/${record.id}`);
+      navigate(`/updates/${record.id}`)
     }
   };
 
   return (
     <div>
       <Table
+        size="middle"
         onRow={(record) => ({
           onClick: (event) => Row(record, event),
         })}
         dataSource={data?.map((u, i) => ({
           no: i + 1,
           ...u,
-          company_name: CompanyData?.data?.find(
-            (company: any) => company.id === u.company_id
-          )?.name,
-          customer_name: CustomerData?.data?.find(
-            (customer: any) => customer.id === u.customer_id
-          )?.name,
-          in_charge_name: AdminData?.data?.find(
-            (admin: any) => admin.id === u.provider_id
-          )?.username,
-          executor_name: AdminData?.data?.find(
-            (admin: any) => admin.id === u.executor_id
-          )?.username,
-          created: moment(u?.created_at, "YYYY-MM-DD HH:mm:ss").format(
+          created: moment(u?.created_at).tz(timeZone).format(
             "DD.MM.YYYY HH:mm"
           ),
           action: { ...u },
@@ -94,7 +80,7 @@ const UpdateTable = ({
           },
           {
             title: "Company",
-            dataIndex: "company_name",
+            dataIndex: "company",
             ellipsis: {
               showTitle: false,
             },
@@ -106,7 +92,7 @@ const UpdateTable = ({
           },
           {
             title: "Customer",
-            dataIndex: "customer_name",
+            dataIndex: "customer",
             ellipsis: {
               showTitle: false,
             },
@@ -118,7 +104,7 @@ const UpdateTable = ({
           },
           {
             title: "Created by",
-            dataIndex: "in_charge_name",
+            dataIndex: "provider",
             ellipsis: {
               showTitle: false,
             },
@@ -129,8 +115,8 @@ const UpdateTable = ({
             ),
           },
           {
-            title: "Complited by",
-            dataIndex: "executor_name",
+            title: "Completed by",
+            dataIndex: "executor",
             ellipsis: {
               showTitle: false,
             },
@@ -147,10 +133,12 @@ const UpdateTable = ({
               showTitle: false,
             },
             render: (status: string) => (
-              <span
-                className={`status-${status.toLowerCase().replace(/\s/g, "-")}`}
-              >
-                {status}
+              <span>
+                {status === "Done" && <Tag color="gold">Done</Tag>}
+                {status === "In Progress" && <Tag color="green">Checking</Tag>}
+                {status === "New" && <Tag color="blue">New</Tag>}
+                {status === "Setup" && <Tag color="red">Setup</Tag>}
+                {status === "Paper" && <Tag color="cyan">Paper</Tag>}
               </span>
             ),
           },
@@ -195,7 +183,6 @@ const UpdateTable = ({
           {
             title: "Actions",
             dataIndex: "action",
-            fixed: "right",
             width: "8%",
             render: (record: TUpdate) => {
               return (

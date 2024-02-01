@@ -10,6 +10,7 @@ export type TCustomerGetParams = {
 export type TCustomerByCompanyGetParams = {
   name?: string;
   id?: string;
+  is_active?: boolean;
 };
 export type TCustomerPutParams = {
   name?: string;
@@ -42,9 +43,10 @@ export const customerController = {
     }
   },
 
-  async customerByCompany(id: string | undefined, name: string | undefined) {
-    const params = { name };
+  async customerByCompany(id: string | undefined, name: string | undefined, is_active: boolean | undefined) {
+    const params = { name, is_active };
     if (!!name) params.name = name;
+    if (!!is_active) params.is_active = is_active;
     if (id) {
       const { data } = await instance.get<TCustomer[]>(
         `customers-by-company/${id}/`,
@@ -65,11 +67,8 @@ export const customerController = {
   },
 
   async addCustomerController(obj: TCustomerPostParams) {
-    message.loading({ content: "Loading..." });
     const { data } = await instance.post<TCustomer>("customer/", obj).then((u) => {
-      setTimeout(() => {
-        message.success({ content: "Loaded!", duration: 2 });
-      }, 1000);
+      message.success({ content: "Loaded!", duration: 1 });
       return u;
     });
     return data;
@@ -81,9 +80,6 @@ export const customerController = {
     let error = "";
     try {
       const { data } = await instance.delete(`customer/${id}/`).then((u) => {
-        setTimeout(() => {
-          message.success({ content: "Deleted!", duration: 2 });
-        }, 1000);
         return u;
       });
       res = data;

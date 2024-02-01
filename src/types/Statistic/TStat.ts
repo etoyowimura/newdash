@@ -11,3 +11,11 @@ export type TStatTeam = {
     is_active:    boolean;
     total_points: number;
 }
+
+export type TCard = { 
+    all_tasks: number;
+    active_tasks: number;
+    active_tasks_percentage: number;
+    inactive_tasks: number;
+    inactive_tasks_percentage: number;
+}

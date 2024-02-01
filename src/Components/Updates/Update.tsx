@@ -3,6 +3,7 @@ import AddUpdate from "./AddUpdate";
 import { Button, Select } from "antd";
 import UpdateTable from "./UpdateTable";
 import { useUpdateData } from "../../Hooks/Update";
+import { isMobile } from "../../App";
 
 const Update = () => {
   const [open, setOpen] = useState(false);
@@ -25,13 +26,14 @@ const Update = () => {
           marginBottom: 6,
         }}
       >
-        {open && <AddUpdate open={open} setOpen={setOpen} />}
+        {open && <AddUpdate refetch={refetch} open={open} setOpen={setOpen} />}
         <Select
-          style={{ width: "40%", marginLeft: 10 }}
+          style={{ width: "60%", marginLeft: 10 }}
           placeholder="status"
           onChange={(value: any) => setStatus(value)}
           mode="multiple"
-          defaultValue={['New', 'In Progress', 'Paper', 'Setup']} 
+          defaultValue={['New', 'In Progress', 'Paper', 'Setup']}
+          size={isMobile? 'small': 'middle'}
         >
           <Option value="New">New</Option>
           <Option value="In Progress">In Progress</Option>
@@ -42,10 +44,10 @@ const Update = () => {
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={isMobile? 'small': 'middle'}
           onClick={showModal}
         >
-          Add Update
+          Add
         </Button>
       </span>
 

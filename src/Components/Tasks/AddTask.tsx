@@ -24,15 +24,15 @@ const AddTask = ({
   const [customerName, setCustomerName] = useState<string>();
   const [companyId, setCompanyId] = useState<string>();
   const ServiceData = useServiceData();
-  
+
   const TeamData = useTeamData("");
-  const companyData = useCompanyData({ name: companyName });
+  const companyData = useCompanyData({ name: companyName, is_active: true });
   const customerData = useCustomerByComanyData({
     id: companyId,
     name: customerName,
+    is_active: true,
   });
 
-  
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   function handlePaste(event: any) {
     const clipboardData = event.clipboardData || window.Clipboard;
@@ -93,7 +93,7 @@ const AddTask = ({
           <FormAnt.Item
             label="Company"
             name="company_id"
-            rules={[{ required: false, message: "Please input company!" }]}
+            rules={[{ required: true, message: "Please input company!" }]}
           >
             <Select
               showSearch
@@ -114,7 +114,7 @@ const AddTask = ({
             label="Customer"
             name="customer_id"
             rules={[
-              { required: false, message: "Please input service points!" },
+              { required: true, message: "Please input service points!" },
             ]}
           >
             <Select
@@ -147,7 +147,7 @@ const AddTask = ({
             label="Assigned to"
             name="assigned_to_id"
             rules={[
-              { required: true, message: "Please select one of the teams!" },
+              { required: false },
             ]}
           >
             <Select
@@ -220,9 +220,9 @@ const AddTask = ({
                 }}
               >
                 <p className="ant-upload-drag-icon">
-                  <UploadOutlined style={{ color: "#36cfc9" }} />
+                  <UploadOutlined style={{ color: "#ffb94a" }} />
                 </p>
-                <p className="ant-upload-text" style={{ color: "#36cfc9" }}>
+                <p className="ant-upload-text" style={{ color: "#ffb94a" }}>
                   Click or drag a file here to upload
                 </p>
               </Upload.Dragger>

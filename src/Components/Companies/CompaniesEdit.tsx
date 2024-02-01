@@ -21,12 +21,12 @@ import { useTeamData } from "../../Hooks/Teams";
 import Table from "antd/es/table";
 import AddDriver from "./AddDriver";
 import { useCustomerByComanyData } from "../../Hooks/Customers";
+import { role } from "../../App";
 
 const TabPane = Tabs.TabPane;
 type params = {
   readonly id: any;
 };
-const isSuper = localStorage.getItem("isSuperUser");
 type MyObjectType = {
   [key: string | number]: any;
 };
@@ -55,11 +55,12 @@ const CompanyEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       companyController.deleteCompanyController(id).then(() => {
-        document.location.replace(`/#/companies`);
+        navigate(-1)
       });
     }
   };
-
+  console.log(data);
+  
   return (
     <div>
       <Spin size="large" spinning={!data}>
@@ -154,7 +155,7 @@ const CompanyEdit = () => {
                           </Col>
                         </Row>
                         <Form.Item>
-                          {isSuper === "true" && (
+                          {(role === "Tech Support" || "Owner") && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"
@@ -164,7 +165,7 @@ const CompanyEdit = () => {
                               Delete
                             </Button>
                           )}
-                          {isSuper === "true" && (
+                          {(role === "Tech Support" || "Owner") && (
                             <Button type="primary" htmlType="submit">
                               Submit
                             </Button>
@@ -200,9 +201,7 @@ const CompanyEdit = () => {
                           onClick: (event: any) => {
                             if (isTextSelected) {
                             }
-                            document.location.replace(
-                              `/#/customers/${record.id}`
-                            );
+                            navigate(`/customers/${record.id}`)
                           },
                         };
                       }}
@@ -256,7 +255,7 @@ const CompanyEdit = () => {
                       style={{ marginLeft: "auto" }}
                       size={"middle"}
                       onClick={showModal}
-                      disabled={isSuper === "false"}
+                      disabled={role === "Checker"}
                     >
                       Add Driver
                     </Button>

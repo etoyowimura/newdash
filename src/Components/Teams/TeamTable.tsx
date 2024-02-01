@@ -1,10 +1,12 @@
 import { Table, Tag } from "antd";
 import { TTeam } from "../../types/Team/TTeam";
+import { useNavigate } from 'react-router-dom';
 import {
   QueryObserverResult,
   RefetchOptions,
   RefetchQueryFilters,
 } from "react-query";
+import { isMobile, timeZone } from "../../App";
 
 const TeamTable = ({
   data,
@@ -17,7 +19,8 @@ const TeamTable = ({
     options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined
   ) => Promise<QueryObserverResult<TTeam[], unknown>>;
 }) => {
-  const moment = require('moment')
+  const navigate = useNavigate();
+  const moment = require('moment-timezone')
     
   return (
     <Table
@@ -25,7 +28,7 @@ const TeamTable = ({
       onRow={(record) => {
         return {
           onClick: () => {
-            document.location.replace(`/#/teams/${record.id}`);
+            navigate(`/teams/${record.id}`)
           },
         };
       }}
@@ -33,9 +36,10 @@ const TeamTable = ({
         ...u,
         no: i + 1,
         action: { id: u.id },
-        created: moment(u?.created_at, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm'),
+        created: moment(u?.created_at).tz(timeZone).format('DD.MM.YYYY HH:mm'),
         key: u.id,
       }))}
+      size="middle"
       columns={[
         {
           title: "No",

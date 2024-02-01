@@ -17,7 +17,7 @@ import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
 import { useTeamData } from "../../Hooks/Teams";
 import { useRoleData } from "../../Hooks/Role";
-const isSuper = localStorage.getItem("isSuperUser");
+import { role } from "../../App";
 const TabPane = Tabs.TabPane;
 type params = {
   readonly id: string;
@@ -34,8 +34,7 @@ const UserEdit = () => {
   const onSubmit = async (value: any) => {
     id && await userController.userPatch(value, id);
     refetch();
-    // navigate(-1)
-    document.location.replace("/#/users/"); 
+    navigate(-1)
   };
   const TeamData = useTeamData('');
   const noTeamOption = { label: " - - - - - -", value: "" };
@@ -55,7 +54,7 @@ const UserEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       userController.deleteUserController(id).then(() => {
-        document.location.replace(`/#/users`);
+        navigate(-1)
       });
     }
   };
@@ -150,7 +149,7 @@ const UserEdit = () => {
                           </Col>
                         </Row>
                         <Form.Item>
-                          {isSuper === "true" && (
+                          {role !== "Checker" && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"

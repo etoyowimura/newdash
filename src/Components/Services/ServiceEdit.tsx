@@ -14,7 +14,7 @@ import {
 import { serviceController } from "../../API/LayoutApi/services";
 import { FormOutlined } from "@ant-design/icons";
 import Notfound from "../../Utils/Notfound";
-const isSuper = localStorage.getItem("isSuperUser");
+import { role } from "../../App";
 const TabPane = Tabs.TabPane;
 
 type params = {
@@ -31,7 +31,7 @@ const ServiceEdit = () => {
   const onSubmit = async (value: any) => {
     await serviceController.servicePatch(value, id);
     refetch();
-    document.location.replace('/#/services')
+    navigate(-1)
   };
   
   const ClickDelete = () => {
@@ -40,7 +40,7 @@ const ServiceEdit = () => {
     );
     if (shouldDelete && id !== undefined) {
       serviceController.deleteServiceController(id).then((data: any) => {
-        document.location.replace(`/#/services`);
+        navigate(-1)
       });
     }
   };
@@ -102,7 +102,7 @@ const ServiceEdit = () => {
                           </Col>
                         </Row>
                         <Form.Item>
-                        {isSuper === "true" && (
+                        {role !== "Checker" && (
                             <Button
                               onClick={() => ClickDelete()}
                               type="primary"

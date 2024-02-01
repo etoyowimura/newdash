@@ -3,8 +3,8 @@ import { useServiceData } from "../../Hooks/Services";
 import AddService from "./AddService";
 import { Button } from "antd"; 
 import ServiceTable from "./ServiceTable";
+import { role } from "../../App";
 
-const isSuper = localStorage.getItem("isSuperUser");
 const Service = () => {
   const { data, isLoading, refetch} = useServiceData();
   const [open, setOpen] = useState(false);
@@ -25,11 +25,11 @@ const Service = () => {
         <Button
           type="primary"
           style={{ marginLeft: "auto" }}
-          size={"large"}
+          size={"middle"}
           onClick={showModal}
-          disabled={isSuper === "false"}
+          disabled={role === "Checker"}
         >
-          Add Service
+          Add
         </Button>
       </span>
       <ServiceTable

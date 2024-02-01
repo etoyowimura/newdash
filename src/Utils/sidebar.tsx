@@ -22,13 +22,26 @@ import TeamEdit from "../Components/Teams/TeamEdit";
 import Team from "../Components/Teams/Teams";
 import User from "../Components/Users/Users";
 import UserEdit from "../Components/Users/UserEdit";
-import MenuItem from "antd/es/menu/MenuItem";
 import Stat from "../Components/Statistics/Statistic";
 import Profile from "../Components/Profile/Profile";
 import Update from "../Components/Updates/Update";
 import UpdateEdit from "../Components/Updates/UpdateEdit";
 
 type MenuItem = Required<MenuProps>["items"][number];
+
+interface userType {
+  first_name: string | null;
+  last_name: string | null;
+  id: number | null;
+  role: string | null;
+  timezone: string | null;
+  username: string | null;
+}
+
+const userJSON: any = localStorage.getItem("user");
+const userObject: userType = JSON.parse(userJSON);
+const role = userObject?.role;
+
 
 function getItem(
   label: React.ReactNode,
@@ -43,15 +56,14 @@ function getItem(
     label,
   } as MenuItem;
 }
-const isSuperUser = localStorage.getItem("isSuperUser");
 
 export const allMenu: MenuItem[] = [
-  getItem(<Link to="/">Tasks</Link>, "/", <FileDoneOutlined />),
+  getItem(<Link to="/tasks">Tasks</Link>, "/tasks", <FileDoneOutlined />),
   getItem(
     <Link to="companies/">Companies</Link>,
     "companies/",
     <BankOutlined />
-  ),
+  ),  
   getItem(
     <Link to="customers/">Customers</Link>,
     "customers/",
@@ -64,20 +76,25 @@ export const allMenu: MenuItem[] = [
   ),
 ];
 
-if (isSuperUser !== "false") {
+if (role !== "Checker") {
   allMenu.push(
     getItem(<Link to="teams/">Teams</Link>, "teams/", <TeamOutlined />),
-    getItem(
-      <Link to="stats/">Statistics</Link>,
-      "stats/",
-      <BarChartOutlined />
-    ),
-    getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />),
     getItem(
       <Link to="updates/">Updates</Link>,
       "updates/",
       <DownSquareOutlined />
     )
+  );
+}
+
+if (role === "Owner") {
+  allMenu.push(
+    getItem(
+      <Link to="stats/">Statistics</Link>,
+      "stats/",
+      <BarChartOutlined />
+    ),
+    getItem(<Link to="users/">Admins</Link>, "users/", <MehOutlined />)
   );
 }
 
@@ -119,14 +136,14 @@ export const mainItems: TItems[] = [
     key: "/service/:id/",
   },
   {
-    path: "/",
+    path: "/tasks/",
     component: <Task />,
-    key: "tasks",
+    key: "/tasks/",
   },
   {
-    path: "/:id/",
+    path: "/tasks/:id/",
     component: <TaskEdit />,
-    key: "task/:id/",
+    key: "/tasks/:id/",
   },
 ];
 
@@ -169,6 +186,6 @@ export const superItems: TItems[] = [
   {
     path: "/updates/:id/",
     component: <UpdateEdit />,
-    key: "/update/:id/",
+    key: "/updates/:id/",
   },
 ];

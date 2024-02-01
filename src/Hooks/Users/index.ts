@@ -1,10 +1,10 @@
 import { useQuery } from "react-query";
 import { TUsersGetParams, userController } from "../../API/LayoutApi/users";
 
-export const useUserData = ({name, team}: TUsersGetParams) => {
+export const useUserData = ({name, team, role}: TUsersGetParams) => {
   return useQuery(
-    [`users/admins`, {name, team}],
-    () => userController.read({name, team}),
+    [`users/admins/`, {name, team, role}],
+    () => userController.read({name, team, role}),
     { refetchOnWindowFocus: false }
   );
 };
@@ -15,6 +15,16 @@ export const useUserOne = (
   return useQuery(
     [`user/${userId || "all"}`, userId],
     () => userController.userOne(userId),
+    { refetchOnWindowFocus: false }
+  );
+};
+
+export const useCheckUser = (
+  username: string 
+): any => {
+  return useQuery(
+    [`user/${username}/`],
+    () => userController.CheckUsername(username),
     { refetchOnWindowFocus: false }
   );
 };

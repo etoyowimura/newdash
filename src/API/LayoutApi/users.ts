@@ -5,6 +5,7 @@ import { message } from "antd";
 export type TUsersGetParams = {
   name?: string,
   team?: string;
+  role?: string;
 }
 
 export type TUsersPutParams = {
@@ -26,13 +27,26 @@ export const userController = {
     const params = {...filterObject};
 
     if (!!filterObject.name) params.name = filterObject.name;
-    if (!!filterObject.team) params.team = filterObject.team;
+    if (Array.isArray(filterObject.team)) {
+      params.team = filterObject.team.join(", ");
+    }
+    if (Array.isArray(filterObject.role)) {
+      params.role = filterObject.role.join(", ");
+    }
 
     const { data } = await instance.get<TUser[]>(
-      `users/admins/`, {params}
+      `users/`, {params}
     );
     return data;
   },
+
+  async CheckUsername(username: string) {
+    const { data } = await instance.get<TUser[]>(
+      `users/check/${username}`
+    );
+    return data;
+  },
+
 
   async userOne(Id: string | number | undefined) {
     const { data }: { data: any } = await instance(`users/admin/${Id}/`);

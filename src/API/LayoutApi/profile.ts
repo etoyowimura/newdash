@@ -1,3 +1,4 @@
+import { message } from "antd";
 import {
   TMyTaskHistory,
   TMystats,
@@ -14,10 +15,19 @@ export type TMyTaskHistoryGetParams = {
   start_date?: string;
   end_date?: string;
 };
-
+export type TChangePostParams = {
+  old_password?: string;
+  new_password?: string;
+  password_confirm?: string;
+};
 export const prof = {
-  async read() {
-    const { data } = await instance.get<TMystats>(`stats/my-stats/`);
+  async read(filterObject: TMyTaskHistoryGetParams) {
+    const params = { ...filterObject };
+    if (!!filterObject.start_date) params.start_date = filterObject.start_date;
+    if (!!filterObject.end_date) params.end_date = filterObject.end_date;
+    const { data } = await instance.get<TMystats>(`stats/my-stats/`, {
+      params,
+    });
     return data;
   },
 
@@ -36,7 +46,7 @@ export const prof = {
     });
     return data;
   },
-  
+
   async profPatch(filterObject: TProfilePutParams) {
     const params = { ...filterObject };
 
@@ -45,9 +55,31 @@ export const prof = {
     params.username = filterObject.username || params.username;
 
     const { data } = await instance.put<TProfilePutParams>(
-      `users/my-profile/`,
+      "users/my-profile/",
       { ...params }
     );
     return data;
+  },
+
+  async changePass(obj: TChangePostParams) {
+    try {
+      const { data } = await instance.post<any>(
+        "users/my-profile/change-password/",
+        obj
+      );
+      message.success(data.message);
+      return data;
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        const errorMessage =
+          error?.response?.data?.old_password ||
+          error?.response?.data?.new_password[0] ||
+          "Bad Request";
+        message.error(errorMessage);
+      } else {
+        message.error("An error occurred");
+      }
+      throw error;
+    }
   },
 };
